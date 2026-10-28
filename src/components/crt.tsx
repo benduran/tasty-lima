@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactNode } from 'react';
-import { cn } from '@/lib/utils.ts';
+import { cn } from '../lib/utils.ts';
 
 const CELL = 'inline-block h-[18px] w-[10px] flex-none' as const;
 

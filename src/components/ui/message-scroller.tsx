@@ -7,8 +7,8 @@ import {
 import { ArrowDownIcon } from 'lucide-react';
 import type * as React from 'react';
 
-import { Button } from '@/components/ui/button.tsx';
-import { cn } from '@/lib/utils.ts';
+import { Button } from './button.tsx';
+import { cn } from '../../lib/utils.ts';
 
 function MessageScrollerProvider(
   props: React.ComponentProps<typeof MessageScrollerPrimitive.Provider>,

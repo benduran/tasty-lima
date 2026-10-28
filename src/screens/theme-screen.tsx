@@ -1,4 +1,4 @@
-import { AppFooter } from '@/components/app-footers.tsx';
+import { AppFooter } from '../components/app-footers.tsx';
 import {
   CrtCells,
   CrtCursor,
@@ -7,10 +7,10 @@ import {
   CrtKey,
   CrtOption,
   CrtSection,
-} from '@/components/crt.tsx';
-import { Button } from '@/components/ui/button.tsx';
-import { Input } from '@/components/ui/input.tsx';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group.tsx';
+} from '../components/crt.tsx';
+import { Button } from '../components/ui/button.tsx';
+import { Input } from '../components/ui/input.tsx';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
 
 const PRESETS = [
   { hex: '#6CC6FF', name: 'BLUE', note: 'default', selected: true },

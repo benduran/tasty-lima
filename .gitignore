@@ -145,4 +145,4 @@ vite.config.ts.timestamp-*
 .vite/
 
 .turbo/
-src/cli/limactl/types.gen.ts
+src/shared/limactl-types.gen.ts

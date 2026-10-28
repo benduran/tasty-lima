@@ -1,4 +1,3 @@
-import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -11,12 +10,13 @@ export default defineConfig({
     outDir: './dist',
   },
   plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, './src'),
-    },
-  },
   server: {
     port: SERVER_PORT,
+    proxy: {
+      '/api': {
+        changeOrigin: true,
+        target: 'http://localhost:60011',
+      },
+    },
   },
 });

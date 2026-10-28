@@ -1,5 +1,5 @@
 import createCLI from 'yargs';
-import { SERVER_PORT_DEV } from '@/shared/constants.ts';
+import { SERVER_PORT_DEV } from '../shared/constants.ts';
 import { ensureLimaCtl } from './limactl/index.ts';
 import { CLIArgsSchema } from './schema.ts';
 import { startServer } from './server.ts';

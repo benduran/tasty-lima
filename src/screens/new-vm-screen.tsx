@@ -1,18 +1,18 @@
 import { Link } from 'wouter';
-import { AppFooter } from '@/components/app-footers.tsx';
+import { AppFooter } from '../components/app-footers.tsx';
 import {
   CrtCells,
   CrtCursor,
   CrtFieldset,
   CrtOption,
   CrtSection,
-} from '@/components/crt.tsx';
-import { Button, buttonVariants } from '@/components/ui/button.tsx';
-import { Checkbox } from '@/components/ui/checkbox.tsx';
-import { Input } from '@/components/ui/input.tsx';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group.tsx';
-import { cn } from '@/lib/utils.ts';
-import { uiRoutes } from '@/routes/ui.ts';
+} from '../components/crt.tsx';
+import { Button, buttonVariants } from '../components/ui/button.tsx';
+import { Checkbox } from '../components/ui/checkbox.tsx';
+import { Input } from '../components/ui/input.tsx';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
+import { cn } from '../lib/utils.ts';
+import { uiRoutes } from '../routes/ui.ts';
 
 const TEMPLATES = [
   { desc: 'Ubuntu, Lima defaults', id: 'default' },

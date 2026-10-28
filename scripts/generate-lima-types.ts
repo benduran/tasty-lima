@@ -8,13 +8,13 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { $ } from 'execa';
-import { LIMA_VERSION } from '../src/cli/constants.ts';
+import { LIMA_VERSION } from '../src/shared/constants.ts';
 import { isNullOrUndefined } from '../src/shared/util.ts';
 
 const LIMA_MODULE = 'github.com/lima-vm/lima/v2';
 const repoRoot = path.resolve(import.meta.dirname, '..');
 const goDir = path.join(repoRoot, 'scripts', 'lima-types');
-const outFile = path.join(repoRoot, 'src', 'cli', 'limactl', 'types.gen.ts');
+const outFile = path.join(repoRoot, 'src', 'shared', 'limactl-types.gen.ts');
 
 // mirrors the output types in scripts/lima-types/main.go
 type LimaTypes = { defs: Def[]; enums: Enum[]; version: string };
@@ -230,7 +230,7 @@ function render(types: LimaTypes) {
     '// To update, bump LIMA_VERSION in src/cli/constants.ts and run `pnpm gen:lima-types`.',
     '',
     "import { z } from 'zod';",
-    "import type { LIMA_VERSION } from '../constants.ts';",
+    "import type { LIMA_VERSION } from './constants.ts';",
     '',
     `export const LIMA_TYPES_VERSION = ${quote(types.version.replace(/^v/, ''))} as const;`,
     '',

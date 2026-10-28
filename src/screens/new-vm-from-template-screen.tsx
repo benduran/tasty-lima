@@ -1,11 +1,11 @@
 import { Link } from 'wouter';
-import { CrtKey } from '@/components/crt.tsx';
-import { CrtDialog } from '@/components/crt-dialog.tsx';
-import { Button, buttonVariants } from '@/components/ui/button.tsx';
-import { Checkbox } from '@/components/ui/checkbox.tsx';
-import { Input } from '@/components/ui/input.tsx';
-import { cn } from '@/lib/utils.ts';
-import { uiRoutes } from '@/routes/ui.ts';
+import { CrtKey } from '../components/crt.tsx';
+import { CrtDialog } from '../components/crt-dialog.tsx';
+import { Button, buttonVariants } from '../components/ui/button.tsx';
+import { Checkbox } from '../components/ui/checkbox.tsx';
+import { Input } from '../components/ui/input.tsx';
+import { cn } from '../lib/utils.ts';
+import { uiRoutes } from '../routes/ui.ts';
 
 const PARAMS = [
   {

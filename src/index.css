@@ -20,7 +20,7 @@
   /* Tube face + derived ramp (spec-exact) */
   --crt-face: #020302;
   --bg: color-mix(in oklch, var(--p) 4%, var(--crt-face));
-  --p-dim: color-mix(in oklch, var(--p) 48%, var(--bg));
+  --p-dim: color-mix(in oklch, var(--p) 64%, var(--bg));
   --p-line: color-mix(in oklch, var(--p) 36%, var(--bg));
   --p-faint: color-mix(in oklch, var(--p) 12%, var(--bg));
   --glow:
@@ -251,5 +251,16 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+/* Dim text is already the low-contrast rung of the ramp; the full body
+   glow (a 9px halo) blurred its thin VT323 strokes into mush. Keep a
+   tight 1px bloom so it still reads as phosphor, but stays legible.
+   Inside @layer utilities so an explicit text-shadow-* utility on the
+   same element still wins. */
+@layer utilities {
+  .text-phosphor-dim {
+    text-shadow: 0 0 1px color-mix(in srgb, var(--p) 35%, transparent);
   }
 }

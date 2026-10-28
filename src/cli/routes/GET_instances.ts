@@ -1,4 +1,4 @@
-import { apiRoutes } from '@/shared/routes.ts';
+import { apiRoutes } from '../../shared/routes.ts';
 import { listInstances } from '../limactl/index.ts';
 import { createApiRouteHandler } from './util.ts';
 

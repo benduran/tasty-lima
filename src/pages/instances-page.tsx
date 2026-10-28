@@ -1,129 +1,50 @@
 import { Link } from 'wouter';
-import { AppFooter } from '@/components/app-footers.tsx';
-import { CrtCells, CrtCursor, CrtDot, CrtSection } from '@/components/crt.tsx';
-import { Button, buttonVariants } from '@/components/ui/button.tsx';
-import { Input } from '@/components/ui/input.tsx';
-import { cn } from '@/lib/utils.ts';
-import { uiRoutes } from '@/routes/ui.ts';
-
-const TABLE_COLS =
-  'grid-cols-[20px_minmax(150px,1.5fr)_100px_120px_56px_90px_48px_72px_80px_minmax(170px,1.2fr)]';
-
-const VMS = [
-  {
-    arch: 'aarch64',
-    cpus: '4',
-    disk: '100 GiB',
-    dot: 'run',
-    mem: '4 GiB',
-    name: 'default',
-    selected: true,
-    ssh: '127.0.0.1:60022',
-    status: 'RUNNING',
-    type: 'vz',
-    uptime: '3d 04:12',
-  },
-  {
-    arch: 'aarch64',
-    cpus: '4',
-    disk: '100 GiB',
-    dot: 'run',
-    mem: '8 GiB',
-    name: 'docker',
-    selected: false,
-    ssh: '127.0.0.1:60906',
-    status: 'RUNNING',
-    type: 'vz',
-    uptime: '0d 06:47',
-  },
-  {
-    arch: 'aarch64',
-    cpus: '2',
-    disk: '50 GiB',
-    dot: 'stop',
-    mem: '4 GiB',
-    name: 'k3s-lab',
-    selected: false,
-    ssh: '-',
-    status: 'STOPPED',
-    type: 'vz',
-    uptime: '-',
-  },
-  {
-    arch: 'x86_64',
-    cpus: '2',
-    disk: '30 GiB',
-    dot: 'stop',
-    mem: '2 GiB',
-    name: 'fedora-test',
-    selected: false,
-    ssh: '-',
-    status: 'STOPPED',
-    type: 'qemu',
-    uptime: '-',
-  },
-  {
-    arch: 'aarch64',
-    cpus: '1',
-    disk: '20 GiB',
-    dot: 'err',
-    mem: '1 GiB',
-    name: 'alpine-build',
-    selected: false,
-    ssh: '-',
-    status: 'BROKEN',
-    type: 'qemu',
-    uptime: '-',
-  },
-] as const;
-
-const STATUS_FILTERS = [
-  { count: 5, id: 'all', label: 'All' },
-  { count: 2, id: 'running', label: 'Running' },
-  { count: 2, id: 'stopped', label: 'Stopped' },
-  { count: 1, id: 'broken', label: 'Broken' },
-] as const;
+import { AppFooter } from '../components/app-footers.tsx';
+import { CrtCells, CrtDot, CrtSection } from '../components/crt.tsx';
+import { InstancesGrid } from '../components/instances-grid/instances-grid.tsx';
+import { Subheader } from '../components/subheader.tsx';
+import { Button, buttonVariants } from '../components/ui/button.tsx';
+import { Input } from '../components/ui/input.tsx';
+import { useQueryInstances } from '../hooks/use-query-instances.ts';
+import { cn } from '../lib/utils.ts';
+import { uiRoutes } from '../routes/ui.ts';
 
 /* Instances: the fleet table plus the selected instance detail panel. */
-export function InstancesScreen() {
+export function InstancesPage() {
+  /** queries */
+  const { data, isPending } = useQueryInstances();
+
+  const instances = data?.ok ? data.data : null;
+
   return (
     <>
       <main className="mx-auto flex w-full max-w-360 flex-1 flex-col gap-6 p-6">
-        <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
-          <div className="flex flex-col gap-1.5">
-            <h1 className="text-6xl">
-              INSTANCES
-              <CrtCursor />
-            </h1>
-            <p className="text-phosphor-dim">
-              5 DEFINED · 2 RUNNING · 2 STOPPED · 1 BROKEN
-            </p>
-          </div>
-          <div className="flex flex-wrap items-end gap-x-8 gap-y-5">
-            <div className="flex flex-col gap-1.5">
-              <p className="tracking-[0.06em] text-phosphor-dim">
+        <Subheader
+          actions={
+            <div className="flex flex-col gap-1 items-start">
+              <p className="tracking-wide text-phosphor-dim mb-1">
                 ALLOCATED TO RUNNING VMS
               </p>
-              <div className="grid grid-cols-[44px_auto_auto] items-center gap-x-3 gap-y-1.5">
-                <span className="text-phosphor-dim">CPU</span>
-                <CrtCells on={8} total={10} />
-                <span>8/10</span>
-                <span className="text-phosphor-dim">MEM</span>
-                <CrtCells on={6} total={16} />
-                <span>12/32 GiB</span>
-              </div>
+
+              <span className="text-phosphor-dim">CPU</span>
+              <CrtCells on={8} total={10} />
+              <span>8/10</span>
+              <span className="text-phosphor-dim">MEM</span>
+              <CrtCells on={6} total={16} />
+              <span>12/32 GiB</span>
+              {/* <Link
+            className={cn(
+              buttonVariants({ size: 'lg', variant: 'default' }),
+              'px-5.5',
+            )}
+            href={uiRoutes.newVm()}
+          >
+            + New VM
+          </Link> */}
             </div>
-            <Link
-              className={cn(
-                buttonVariants({ size: 'lg', variant: 'default' }),
-                'px-5.5',
-              )}
-              href={uiRoutes.newVm()}
-            >
-              + New VM
-            </Link>
-          </div>
-        </div>
+          }
+          title="Instances"
+        />
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
           <label
@@ -133,22 +54,6 @@ export function InstancesScreen() {
             <span>FILTER&gt;</span>
             <Input id="q" placeholder="name..." type="search" />
           </label>
-          <div
-            aria-label="Filter by status"
-            className="flex flex-wrap gap-2"
-            role="group"
-          >
-            {STATUS_FILTERS.map(filter => (
-              <Button
-                aria-pressed={filter.id === 'all'}
-                key={filter.id}
-                type="button"
-                variant={filter.id === 'all' ? 'default' : 'outline'}
-              >
-                {filter.label} {filter.count}
-              </Button>
-            ))}
-          </div>
         </div>
 
         <CrtSection
@@ -156,50 +61,7 @@ export function InstancesScreen() {
           label="~/.lima"
           title="INSTANCES"
         >
-          <div className="min-w-250">
-            <div
-              aria-hidden="true"
-              className={cn(
-                'grid gap-x-3 border-b border-phosphor-line px-3 py-2 tracking-[0.06em] text-phosphor-dim',
-                TABLE_COLS,
-              )}
-            >
-              <span />
-              <span>NAME</span>
-              <span>STATUS</span>
-              <span>UPTIME</span>
-              <span>TYPE</span>
-              <span>ARCH</span>
-              <span>CPU</span>
-              <span>MEM</span>
-              <span>DISK</span>
-              <span>SSH</span>
-            </div>
-            {VMS.map(vm => (
-              <button
-                aria-pressed={vm.selected}
-                className={cn(
-                  'grid w-full min-h-12 items-center gap-x-3 border-b border-phosphor-line px-3 text-left hover:bg-phosphor-faint',
-                  TABLE_COLS,
-                  vm.selected &&
-                    'bg-phosphor-faint text-shadow-(--glow) outline-1 -outline-offset-1 outline-primary',
-                )}
-                key={vm.name}
-                type="button"
-              >
-                <CrtDot variant={vm.dot} />
-                <span className="text-[23px]">{vm.name}</span>
-                <span>{vm.status}</span>
-                <span>{vm.uptime}</span>
-                <span>{vm.type}</span>
-                <span>{vm.arch}</span>
-                <span>{vm.cpus}</span>
-                <span>{vm.mem}</span>
-                <span>{vm.disk}</span>
-                <span>{vm.ssh}</span>
-              </button>
-            ))}
-          </div>
+          <InstancesGrid instances={instances} loading={isPending} />
         </CrtSection>
 
         <CrtSection label="RUNNING" title="INSTANCE: default">

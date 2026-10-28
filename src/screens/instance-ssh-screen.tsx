@@ -1,10 +1,10 @@
-import { AppFooter } from '@/components/app-footers.tsx';
-import { CrtFieldset, CrtOption, CrtSection } from '@/components/crt.tsx';
-import { InstancePage } from '@/components/instance-page.tsx';
-import { Button } from '@/components/ui/button.tsx';
-import { Checkbox } from '@/components/ui/checkbox.tsx';
-import { Input } from '@/components/ui/input.tsx';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group.tsx';
+import { AppFooter } from '../components/app-footers.tsx';
+import { CrtFieldset, CrtOption, CrtSection } from '../components/crt.tsx';
+import { InstancePage } from '../components/instance-page.tsx';
+import { Button } from '../components/ui/button.tsx';
+import { Checkbox } from '../components/ui/checkbox.tsx';
+import { Input } from '../components/ui/input.tsx';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
 
 const CONNECT_CMDS = [
   {

@@ -5,8 +5,8 @@ import { cva } from 'class-variance-authority';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { Button } from '@/components/ui/button.tsx';
-import { cn } from '@/lib/utils.ts';
+import { Button } from './button.tsx';
+import { cn } from '../../lib/utils.ts';
 
 const codeBlockVariants = cva(
   'group/code-block relative flex w-full min-w-0 flex-col overflow-hidden rounded-lg text-sm has-[>[data-slot=code-block-content]:focus-visible]:ring-3 has-[>[data-slot=code-block-content]:focus-visible]:ring-ring/50 data-[size=sm]:text-xs',

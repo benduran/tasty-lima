@@ -1,10 +1,10 @@
 import { Link } from 'wouter';
-import { AppFooter } from '@/components/app-footers.tsx';
-import { CrtCursor, CrtKey } from '@/components/crt.tsx';
-import { Button, buttonVariants } from '@/components/ui/button.tsx';
-import { Input } from '@/components/ui/input.tsx';
-import { cn } from '@/lib/utils.ts';
-import { uiRoutes } from '@/routes/ui.ts';
+import { AppFooter } from '../components/app-footers.tsx';
+import { CrtCursor, CrtKey } from '../components/crt.tsx';
+import { Button, buttonVariants } from '../components/ui/button.tsx';
+import { Input } from '../components/ui/input.tsx';
+import { cn } from '../lib/utils.ts';
+import { uiRoutes } from '../routes/ui.ts';
 
 const BUILTIN = [
   { name: 'default', sub: 'Ubuntu + containerd/nerdctl', tags: ['T1'] },

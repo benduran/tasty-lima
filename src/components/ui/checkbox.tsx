@@ -1,7 +1,7 @@
 'use client';
 
 import { Checkbox as CheckboxPrimitive } from '@base-ui/react/checkbox';
-import { cn } from '@/lib/utils.ts';
+import { cn } from '../../lib/utils.ts';
 
 /* CRT checkbox (spec): 20px square, phosphor border; checked = solid
    glowing block inside — no checkmark glyph, the fill IS the state. */
