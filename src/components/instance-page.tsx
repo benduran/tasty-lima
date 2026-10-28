@@ -1,8 +1,8 @@
 import { Link } from 'wouter';
-import { CrtDot } from '@/components/crt';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { uiRoutes } from '@/routes/ui';
+import { CrtDot } from '@/components/crt.tsx';
+import { Button, buttonVariants } from '@/components/ui/button.tsx';
+import { cn } from '@/lib/utils.ts';
+import { uiRoutes } from '@/routes/ui.ts';
 
 const INSTANCE_TABS = [
   { id: 'config', label: 'Config' },

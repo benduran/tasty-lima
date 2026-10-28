@@ -5,8 +5,8 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
+} from '@/components/ui/collapsible.tsx';
+import { cn } from '@/lib/utils.ts';
 
 function Trace({ className, ...props }: React.ComponentProps<'div'>) {
   return (

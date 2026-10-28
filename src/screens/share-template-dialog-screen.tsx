@@ -1,12 +1,12 @@
 import { Link } from 'wouter';
-import { CrtFieldset, CrtKey, CrtOption } from '@/components/crt';
-import { CrtDialog } from '@/components/crt-dialog';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn } from '@/lib/utils';
-import { uiRoutes } from '@/routes/ui';
+import { CrtFieldset, CrtKey, CrtOption } from '@/components/crt.tsx';
+import { CrtDialog } from '@/components/crt-dialog.tsx';
+import { Button, buttonVariants } from '@/components/ui/button.tsx';
+import { Checkbox } from '@/components/ui/checkbox.tsx';
+import { Input } from '@/components/ui/input.tsx';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group.tsx';
+import { cn } from '@/lib/utils.ts';
+import { uiRoutes } from '@/routes/ui.ts';
 
 const RUN_CMD = '$ limactl start github:ben/lima-templates/devbox@v1.0.0';
 

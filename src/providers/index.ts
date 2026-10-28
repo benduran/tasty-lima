@@ -1,1 +1,1 @@
-export { TastyLimaProviders } from './TastyLimaProviders';
+export { TastyLimaProviders } from './TastyLimaProviders.tsx';

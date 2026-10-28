@@ -1,10 +1,10 @@
 import { Link } from 'wouter';
-import { AppFooter } from '@/components/app-footers';
-import { CrtCells, CrtCursor, CrtDot, CrtSection } from '@/components/crt';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { uiRoutes } from '@/routes/ui';
+import { AppFooter } from '@/components/app-footers.tsx';
+import { CrtCells, CrtCursor, CrtDot, CrtSection } from '@/components/crt.tsx';
+import { Button, buttonVariants } from '@/components/ui/button.tsx';
+import { Input } from '@/components/ui/input.tsx';
+import { cn } from '@/lib/utils.ts';
+import { uiRoutes } from '@/routes/ui.ts';
 
 const TABLE_COLS =
   'grid-cols-[20px_minmax(150px,1.5fr)_100px_120px_56px_90px_48px_72px_80px_minmax(170px,1.2fr)]';

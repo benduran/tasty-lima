@@ -1,9 +1,9 @@
-import { AppFooter } from '@/components/app-footers';
-import { CrtCell, CrtCells, CrtSection } from '@/components/crt';
-import { InstancePage } from '@/components/instance-page';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
+import { AppFooter } from '@/components/app-footers.tsx';
+import { CrtCell, CrtCells, CrtSection } from '@/components/crt.tsx';
+import { InstancePage } from '@/components/instance-page.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import { Checkbox } from '@/components/ui/checkbox.tsx';
+import { Input } from '@/components/ui/input.tsx';
 
 const MOUNTS = [
   { guest: '', host: '~', n: 1, writable: false },

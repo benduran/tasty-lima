@@ -1,10 +1,10 @@
 import { execa } from 'execa';
 import { z } from 'zod';
-import { isObject } from '@/shared/util';
-import { logger } from '../logger';
-import { getLimaBinaryPath } from './ensureLimaCtl';
-import type { LimaInstance } from './types.gen';
-import { LimaInstanceSchema } from './types.gen';
+import { isObject } from '@/shared/util.ts';
+import { logger } from '../logger.ts';
+import { getLimaBinaryPath } from './ensureLimaCtl.ts';
+import type { LimaInstance } from './types.gen.ts';
+import { LimaInstanceSchema } from './types.gen.ts';
 
 async function limaExec(args: string[]) {
   const binPath = getLimaBinaryPath();

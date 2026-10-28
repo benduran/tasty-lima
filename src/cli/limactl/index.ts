@@ -1,3 +1,3 @@
-export { ensureLimaCtl, getLimaBinaryPath } from './ensureLimaCtl';
-export { ensureQemu } from './ensureQemu';
-export { listInstances } from './limaExec';
+export { ensureLimaCtl, getLimaBinaryPath } from './ensureLimaCtl.ts';
+export { ensureQemu } from './ensureQemu.ts';
+export { listInstances } from './limaExec.ts';

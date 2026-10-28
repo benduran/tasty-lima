@@ -4,10 +4,10 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import type { PhosphorVariant } from '@/hooks/use-phosphor';
-import { PHOSPHOR_COLORS, PHOSPHOR_VARIANTS } from '@/hooks/use-phosphor';
-import { cn } from '@/lib/utils';
+} from '@/components/ui/popover.tsx';
+import type { PhosphorVariant } from '@/hooks/use-phosphor.ts';
+import { PHOSPHOR_COLORS, PHOSPHOR_VARIANTS } from '@/hooks/use-phosphor.ts';
+import { cn } from '@/lib/utils.ts';
 
 type PhosphorPickerProps = {
   phosphor: PhosphorVariant;

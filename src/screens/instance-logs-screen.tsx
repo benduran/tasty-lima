@@ -1,10 +1,10 @@
-import { AppFooter } from '@/components/app-footers';
-import { CrtCursor, CrtSection } from '@/components/crt';
-import { InstancePage } from '@/components/instance-page';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { AppFooter } from '@/components/app-footers.tsx';
+import { CrtCursor, CrtSection } from '@/components/crt.tsx';
+import { InstancePage } from '@/components/instance-page.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import { Checkbox } from '@/components/ui/checkbox.tsx';
+import { Input } from '@/components/ui/input.tsx';
+import { cn } from '@/lib/utils.ts';
 
 const LOG_SOURCES = [
   { active: true, file: 'ha.stderr.log' },

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { CrtKey } from '@/components/crt';
+import { CrtKey } from '@/components/crt.tsx';
 
 type AppFooterProps = {
   /** [key label, action label] pairs, rendered left to right */

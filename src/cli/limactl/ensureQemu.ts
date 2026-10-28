@@ -5,9 +5,9 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import commandExists from 'command-exists';
 import { $ } from 'execa';
-import { TASTY_LIMA_CACHE } from '../constants';
-import { logger } from '../logger';
-import { fileExists } from './util';
+import { TASTY_LIMA_CACHE } from '../constants.ts';
+import { logger } from '../logger.ts';
+import { fileExists } from './util.ts';
 
 const qemuBinaryFileName = 'qemu-system-x86_64.exe';
 

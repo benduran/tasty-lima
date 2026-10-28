@@ -1,19 +1,19 @@
 import { Link } from 'wouter';
-import { AppFooter } from '@/components/app-footers';
+import { AppFooter } from '@/components/app-footers.tsx';
 import {
   CrtCursor,
   CrtFieldset,
   CrtKey,
   CrtOption,
   CrtSection,
-} from '@/components/crt';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import { uiRoutes } from '@/routes/ui';
+} from '@/components/crt.tsx';
+import { Button, buttonVariants } from '@/components/ui/button.tsx';
+import { Checkbox } from '@/components/ui/checkbox.tsx';
+import { Input } from '@/components/ui/input.tsx';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group.tsx';
+import { Textarea } from '@/components/ui/textarea.tsx';
+import { cn } from '@/lib/utils.ts';
+import { uiRoutes } from '@/routes/ui.ts';
 
 const BASE_ROWS = [
   { first: true, loc: 'template:_images/ubuntu', n: 1 },

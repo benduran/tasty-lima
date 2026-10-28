@@ -1,16 +1,16 @@
 import { Redirect, Route, Switch } from 'wouter';
-import { CloneDialogScreen } from '@/screens/clone-dialog-screen';
-import { InstanceConfigScreen } from '@/screens/instance-config-screen';
-import { InstanceLogsScreen } from '@/screens/instance-logs-screen';
-import { InstanceSshScreen } from '@/screens/instance-ssh-screen';
-import { InstancesScreen } from '@/screens/instances-screen';
-import { NewVmFromTemplateScreen } from '@/screens/new-vm-from-template-screen';
-import { NewVmScreen } from '@/screens/new-vm-screen';
-import { ShareTemplateDialogScreen } from '@/screens/share-template-dialog-screen';
-import { TemplatesEditorScreen } from '@/screens/templates-editor-screen';
-import { TemplatesLibraryScreen } from '@/screens/templates-library-screen';
-import { ThemeScreen } from '@/screens/theme-screen';
-import { uiRoutes } from './ui';
+import { CloneDialogScreen } from '@/screens/clone-dialog-screen.tsx';
+import { InstanceConfigScreen } from '@/screens/instance-config-screen.tsx';
+import { InstanceLogsScreen } from '@/screens/instance-logs-screen.tsx';
+import { InstanceSshScreen } from '@/screens/instance-ssh-screen.tsx';
+import { InstancesScreen } from '@/screens/instances-screen.tsx';
+import { NewVmFromTemplateScreen } from '@/screens/new-vm-from-template-screen.tsx';
+import { NewVmScreen } from '@/screens/new-vm-screen.tsx';
+import { ShareTemplateDialogScreen } from '@/screens/share-template-dialog-screen.tsx';
+import { TemplatesEditorScreen } from '@/screens/templates-editor-screen.tsx';
+import { TemplatesLibraryScreen } from '@/screens/templates-library-screen.tsx';
+import { ThemeScreen } from '@/screens/theme-screen.tsx';
+import { uiRoutes } from './ui.ts';
 
 export function TastyLimaRouter() {
   return (

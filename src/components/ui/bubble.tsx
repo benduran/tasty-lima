@@ -3,7 +3,7 @@ import { useRender } from '@base-ui/react/use-render';
 import type { VariantProps } from 'class-variance-authority';
 import { cva } from 'class-variance-authority';
 import type * as React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.ts';
 
 function BubbleGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (

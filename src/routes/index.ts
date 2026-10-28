@@ -1,2 +1,2 @@
-export {} from './tasty-lima-router';
-export { uiRoutes } from './ui';
+export {} from './tasty-lima-router.tsx';
+export { uiRoutes } from './ui.ts';

@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'wouter';
-import { buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button.tsx';
+import { cn } from '@/lib/utils.ts';
 
 const PRIMARY_NAV = [
   {

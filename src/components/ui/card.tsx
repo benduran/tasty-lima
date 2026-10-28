@@ -1,5 +1,5 @@
 import type * as React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.ts';
 
 /*
   CRT panel (spec: bordered section + inverse-video h2 bar).

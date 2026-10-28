@@ -6,10 +6,10 @@ import { pipeline } from 'node:stream/promises';
 import commandExists from 'command-exists';
 import { $ } from 'execa';
 import { z } from 'zod';
-import { LIMA_VERSION, TASTY_LIMA_CACHE } from '../constants';
-import { logger } from '../logger';
-import { ensureQemu } from './ensureQemu';
-import { fileExists } from './util';
+import { LIMA_VERSION, TASTY_LIMA_CACHE } from '../constants.ts';
+import { logger } from '../logger.ts';
+import { ensureQemu } from './ensureQemu.ts';
+import { fileExists } from './util.ts';
 
 const binaryFileName = `limactl${os.platform() === 'win32' ? '.exe' : ''}`;
 

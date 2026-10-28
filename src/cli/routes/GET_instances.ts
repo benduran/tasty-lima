@@ -1,6 +1,6 @@
-import { apiRoutes } from '@/shared/routes';
-import { listInstances } from '../limactl';
-import { createApiRouteHandler } from './util';
+import { apiRoutes } from '@/shared/routes.ts';
+import { listInstances } from '../limactl/index.ts';
+import { createApiRouteHandler } from './util.ts';
 
 export const GET_instances = createApiRouteHandler(
   apiRoutes.instances(),

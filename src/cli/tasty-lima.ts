@@ -1,8 +1,8 @@
 import createCLI from 'yargs';
-import { SERVER_PORT_DEV } from '@/shared/constants';
-import { ensureLimaCtl } from './limactl';
-import { CLIArgsSchema } from './schema';
-import { startServer } from './server';
+import { SERVER_PORT_DEV } from '@/shared/constants.ts';
+import { ensureLimaCtl } from './limactl/index.ts';
+import { CLIArgsSchema } from './schema.ts';
+import { startServer } from './server.ts';
 
 async function setup() {
   const yargs = createCLI(process.argv.slice(2));

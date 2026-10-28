@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.ts';
 
 /* CRT key chip (spec `.key`): inverse video — phosphor fill, tube text,
    glow off. Used for keyboard hints and status tags. */

@@ -27,27 +27,27 @@
     },
     "build:cli:linux:arm64": {
       "cache": false,
-      "dependsOn": ["build:ui"]
+      "dependsOn": ["build:ui", "gen:lima-types"]
     },
     "build:cli:linux:arm64-musl": {
       "cache": false,
-      "dependsOn": ["build:ui"]
+      "dependsOn": ["build:ui", "gen:lima-types"]
     },
     "build:cli:linux:x64": {
       "cache": false,
-      "dependsOn": ["build:ui"]
+      "dependsOn": ["build:ui", "gen:lima-types"]
     },
     "build:cli:linux:x64-musl": {
       "cache": false,
-      "dependsOn": ["build:ui"]
+      "dependsOn": ["build:ui", "gen:lima-types"]
     },
     "build:cli:mac:arm64": {
       "cache": false,
-      "dependsOn": ["build:ui"]
+      "dependsOn": ["build:ui", "gen:lima-types"]
     },
     "build:cli:win:x64": {
       "cache": false,
-      "dependsOn": ["build:ui"]
+      "dependsOn": ["build:ui", "gen:lima-types"]
     },
     "build:ui": {
       "description": "vite build -> dist/",
@@ -66,6 +66,7 @@
     },
     "dev:cli": {
       "cache": false,
+      "dependsOn": ["gen:lima-types"],
       "description": "tsx watch of the CLI entrypoint (persistent)",
       "persistent": true
     },
@@ -77,6 +78,9 @@
     "fix:lint": {
       "cache": false,
       "description": "biome autofixer — mutates the tree, never cache this"
+    },
+    "gen:lima-types": {
+      "cache": false
     },
     "preview": {
       "cache": false,

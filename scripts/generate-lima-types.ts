@@ -8,8 +8,8 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { $ } from 'execa';
-import { LIMA_VERSION } from '../src/cli/constants';
-import { isNullOrUndefined } from '../src/shared/util';
+import { LIMA_VERSION } from '../src/cli/constants.ts';
+import { isNullOrUndefined } from '../src/shared/util.ts';
 
 const LIMA_MODULE = 'github.com/lima-vm/lima/v2';
 const repoRoot = path.resolve(import.meta.dirname, '..');
@@ -230,7 +230,7 @@ function render(types: LimaTypes) {
     '// To update, bump LIMA_VERSION in src/cli/constants.ts and run `pnpm gen:lima-types`.',
     '',
     "import { z } from 'zod';",
-    "import type { LIMA_VERSION } from '../constants';",
+    "import type { LIMA_VERSION } from '../constants.ts';",
     '',
     `export const LIMA_TYPES_VERSION = ${quote(types.version.replace(/^v/, ''))} as const;`,
     '',
