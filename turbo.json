@@ -1,0 +1,103 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["build:ui", "build:cli"],
+      "description": "Build the UI and the CLI for the current machine"
+    },
+    "build:all": {
+      "dependsOn": ["build:cli:all"],
+      "description": "Build the UI, then ALL CLI targets"
+    },
+    "build:cli": {
+      "cache": false,
+      "dependsOn": ["build:ui"],
+      "description": "nodec bundle for the host platform (runs after build:ui so dist/ exists for embedding); uncached while all targets write ./tasty-lima — make cacheable once each target gets its own --outDir"
+    },
+    "build:cli:all": {
+      "dependsOn": [
+        "build:cli:linux:x64",
+        "build:cli:linux:x64-musl",
+        "build:cli:linux:arm64",
+        "build:cli:linux:arm64-musl",
+        "build:cli:mac:arm64",
+        "build:cli:win:x64"
+      ],
+      "description": "Every nodec target the scripts define, after the UI is built"
+    },
+    "build:cli:linux:arm64": {
+      "cache": false,
+      "dependsOn": ["build:ui"]
+    },
+    "build:cli:linux:arm64-musl": {
+      "cache": false,
+      "dependsOn": ["build:ui"]
+    },
+    "build:cli:linux:x64": {
+      "cache": false,
+      "dependsOn": ["build:ui"]
+    },
+    "build:cli:linux:x64-musl": {
+      "cache": false,
+      "dependsOn": ["build:ui"]
+    },
+    "build:cli:mac:arm64": {
+      "cache": false,
+      "dependsOn": ["build:ui"]
+    },
+    "build:cli:win:x64": {
+      "cache": false,
+      "dependsOn": ["build:ui"]
+    },
+    "build:ui": {
+      "description": "vite build -> dist/",
+      "inputs": [
+        "index.html",
+        "src/**",
+        "vite.config.ts",
+        "tsconfig.json",
+        "components.json"
+      ],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "description": "Boot the UI dev server and the CLI helper together",
+      "with": ["dev:ui", "dev:cli"]
+    },
+    "dev:cli": {
+      "cache": false,
+      "description": "tsx watch of the CLI entrypoint (persistent)",
+      "persistent": true
+    },
+    "dev:ui": {
+      "cache": false,
+      "description": "Vite dev server (persistent)",
+      "persistent": true
+    },
+    "fix:lint": {
+      "cache": false,
+      "description": "biome autofixer — mutates the tree, never cache this"
+    },
+    "preview": {
+      "cache": false,
+      "description": "vite preview server (persistent)",
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": ["test:lint", "test:types"],
+      "description": "Lint AND typecheck"
+    },
+    "test:lint": {
+      "description": "biome check ."
+    },
+    "test:types": {
+      "description": "tsc --noEmit",
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "tsconfig.json",
+        "tsconfig.node.json"
+      ]
+    }
+  }
+}
