@@ -1,7 +1,6 @@
 import { Tubular } from 'totally-tubular';
 import { createUseTubular, createUseTubularReset } from 'totally-tubular/react';
-import type { LimaInstance } from '../shared/limactl-types.gen.ts';
-import type { Nullish } from '../shared/types.ts';
+import type { LimaInstance, Nullish } from '../shared/types.ts';
 
 type InstancesStore = {
   selected: Nullish<LimaInstance>;

@@ -1,4 +1,4 @@
-import type { PropsWithChildren, ReactNode } from 'react';
+import type { ComponentProps, PropsWithChildren, ReactNode } from 'react';
 import { cn } from '../lib/utils.ts';
 
 const CELL = 'inline-block h-[18px] w-[10px] flex-none' as const;
@@ -39,7 +39,7 @@ export function CrtCells({
   was?: number;
 }) {
   return (
-    <span aria-hidden="true" className="flex gap-[3px]">
+    <span aria-hidden="true" className="flex gap-1">
       {Array.from({ length: total }, (_, i) => (
         <CrtCell key={i} state={cellState(i, on, was)} />
       ))}
@@ -51,11 +51,13 @@ export function CrtSection({
   children,
   className,
   contentClassName,
+  footer,
   label,
   title,
 }: PropsWithChildren<{
   className?: string;
   contentClassName?: string;
+  footer?: ReactNode;
   label?: ReactNode;
   title: ReactNode;
 }>) {
@@ -66,6 +68,7 @@ export function CrtSection({
         {label ? <span>{label}</span> : null}
       </h2>
       <div className={contentClassName}>{children}</div>
+      {footer && <div className="bg-phosphor">{footer}</div>}
     </section>
   );
 }
@@ -121,31 +124,29 @@ export function CrtFieldset({
   );
 }
 
-/**
- * Selectable option card (spec `.opt`): bordered row that lights up faint
- * when selected and dims when unavailable. Rendered as a span because the
- * option wraps Base UI controls, which are button-based, not labelable.
- */
 export function CrtOption({
   children,
   className,
+  htmlFor,
   off,
   sel,
-}: PropsWithChildren<{
-  className?: string;
+  ...props
+}: ComponentProps<'label'> & {
   off?: boolean;
   sel?: boolean;
-}>) {
+}) {
   return (
-    <span
+    <label
       className={cn(
         'flex min-h-11 cursor-pointer items-center gap-3 border border-phosphor-line px-3 hover:border-primary',
         sel && 'border-primary bg-phosphor-faint',
         off && 'cursor-not-allowed opacity-45',
         className,
       )}
+      htmlFor={htmlFor}
+      {...props}
     >
       {children}
-    </span>
+    </label>
   );
 }

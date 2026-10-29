@@ -18,30 +18,17 @@ export class FetchError extends Error {
   }
 }
 
-type JSONFetchReturnType<T> =
-  | {
-      data: T;
-      ok: true;
-    }
-  | {
-      error: string;
-      ok: false;
-    };
-
 export async function jsonFetch<T extends z.ZodType>({
   allowedErrorStatuses = [],
   method = 'GET',
   schema,
   url,
   ...rest
-}: JSONFetchOpts<T>): Promise<JSONFetchReturnType<z.output<T>>> {
+}: JSONFetchOpts<T>): Promise<z.output<T>> {
   const response = await fetch(url, { method, ...rest });
   const body = await response.text();
-  if (!response.ok) {
-    if (!allowedErrorStatuses.includes(response.status)) {
-      throw new FetchError(url, method, response.status, body);
-    }
-    return { error: body, ok: false };
+  if (!response.ok && !allowedErrorStatuses.includes(response.status)) {
+    throw new FetchError(url, method, response.status, body);
   }
-  return { data: schema.parse(JSON.parse(body)), ok: true };
+  return schema.parse(JSON.parse(body));
 }

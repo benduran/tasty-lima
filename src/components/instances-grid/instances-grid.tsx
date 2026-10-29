@@ -1,6 +1,5 @@
 import { cn } from '../../lib/index.ts';
-import type { LimaInstance } from '../../shared/limactl-types.gen.ts';
-import type { Nullish } from '../../shared/types.ts';
+import type { LimaInstance, Nullish } from '../../shared/types.ts';
 import { arrayHasItems } from '../../shared/util.ts';
 import { Skeleton } from '../ui/skeleton.tsx';
 import { COLS_COUNT } from './constants.ts';

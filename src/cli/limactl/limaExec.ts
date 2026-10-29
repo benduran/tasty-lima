@@ -1,7 +1,7 @@
 import { execa } from 'execa';
 import { z } from 'zod';
-import type { LimaInstance } from '../../shared/limactl-types.gen.ts';
-import { LimaInstanceSchema } from '../../shared/limactl-types.gen.ts';
+import type { LimaInstance } from '../../shared/types.ts';
+import { LimaInstanceSchema } from '../../shared/types.ts';
 import { isObject } from '../../shared/util.ts';
 import { logger } from '../logger.ts';
 import { getLimaBinaryPath } from './ensureLimaCtl.ts';

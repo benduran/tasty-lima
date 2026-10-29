@@ -1,11 +1,11 @@
 import { Redirect, Route, Switch } from 'wouter';
 import { InstancesPage } from '../pages/instances-page.tsx';
+import { NewVmPage } from '../pages/new-vm-page.tsx';
 import { CloneDialogScreen } from '../screens/clone-dialog-screen.tsx';
 import { InstanceConfigScreen } from '../screens/instance-config-screen.tsx';
 import { InstanceLogsScreen } from '../screens/instance-logs-screen.tsx';
 import { InstanceSshScreen } from '../screens/instance-ssh-screen.tsx';
 import { NewVmFromTemplateScreen } from '../screens/new-vm-from-template-screen.tsx';
-import { NewVmScreen } from '../screens/new-vm-screen.tsx';
 import { ShareTemplateDialogScreen } from '../screens/share-template-dialog-screen.tsx';
 import { TemplatesEditorScreen } from '../screens/templates-editor-screen.tsx';
 import { TemplatesLibraryScreen } from '../screens/templates-library-screen.tsx';
@@ -22,7 +22,7 @@ export function TastyLimaRouter() {
         <InstancesPage />
       </Route>
       <Route path={uiRoutes.newVm()}>
-        <NewVmScreen />
+        <NewVmPage />
       </Route>
       <Route path={uiRoutes.instanceConfig(':name')}>
         <InstanceConfigScreen />

@@ -1,5 +1,13 @@
 import { useLayoutEffect } from 'react';
 import { useInstancesStore } from '../../stores/instances-store.ts';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '../ui/drawer.tsx';
+import { VMInstance } from '../vm-instance.tsx';
 
 export function InstanceSidebar() {
   /** hooks */
@@ -8,5 +16,18 @@ export function InstanceSidebar() {
   /** effects */
   useLayoutEffect(() => () => setSelected(null), [setSelected]);
 
-  return <aside>Stuff and things here</aside>;
+  return (
+    <Drawer
+      onOpenChange={open => !open && setSelected(null)}
+      open={Boolean(selected)}
+    >
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Instance: {selected?.name}</DrawerTitle>
+          {selected && <VMInstance instance={selected} />}
+        </DrawerHeader>
+        <DrawerFooter>Stuff</DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
 }
