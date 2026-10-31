@@ -9,7 +9,7 @@ type VMInstanceProps = {
   instance: LimaInstance;
 };
 
-export function VMInstance({ instance }: VMInstanceProps) {
+export function VMInstance({ instance: _instance }: VMInstanceProps) {
   return (
     <CrtSection label="RUNNING" title="INSTANCE: default">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(300px,100%),1fr))] gap-x-10 gap-y-6 p-5">

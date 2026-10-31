@@ -4,6 +4,8 @@ import type { VariantProps } from 'class-variance-authority';
 import { cva } from 'class-variance-authority';
 import { PanelLeftIcon } from 'lucide-react';
 import * as React from 'react';
+import { useIsMobile } from '../../hooks/use-mobile.ts';
+import { cn } from '../../lib/utils.ts';
 import { Button } from './button.tsx';
 import { Input } from './input.tsx';
 import { Separator } from './separator.tsx';
@@ -15,13 +17,7 @@ import {
   SheetTitle,
 } from './sheet.tsx';
 import { Skeleton } from './skeleton.tsx';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from './tooltip.tsx';
-import { useIsMobile } from '../../hooks/use-mobile.ts';
-import { cn } from '../../lib/utils.ts';
+import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip.tsx';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

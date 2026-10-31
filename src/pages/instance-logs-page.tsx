@@ -1,25 +1,29 @@
 import { AppFooter } from '../components/app-footers.tsx';
+import { CheckboxRow } from '../components/checkbox-row.tsx';
 import { CrtCursor, CrtSection } from '../components/crt.tsx';
-import { InstancePage } from '../components/instance-page.tsx';
+import { InstanceHeader } from '../components/instance-header.tsx';
+import type { LogLine } from '../components/instance-logs/log-viewer.tsx';
+import { LogViewer } from '../components/instance-logs/log-viewer.tsx';
+import type { PressItem } from '../components/press-button-group.tsx';
+import { PressButtonGroup } from '../components/press-button-group.tsx';
+import { PromptSearch } from '../components/prompt-search.tsx';
 import { Button } from '../components/ui/button.tsx';
-import { Checkbox } from '../components/ui/checkbox.tsx';
-import { Input } from '../components/ui/input.tsx';
-import { cn } from '../lib/utils.ts';
+import { PageLayout } from '../layouts/PageLayout.tsx';
 
-const LOG_SOURCES = [
-  { active: true, file: 'ha.stderr.log' },
-  { active: false, file: 'ha.stdout.log' },
-  { active: false, file: 'serialv.log' },
-] as const;
+const LOG_SOURCES: readonly PressItem[] = [
+  { id: 'ha.stderr.log', label: 'ha.stderr.log', selected: true },
+  { id: 'ha.stdout.log', label: 'ha.stdout.log' },
+  { id: 'serialv.log', label: 'serialv.log' },
+];
 
-const LEVELS = [
-  { active: true, count: 20, id: 'all', label: 'All' },
-  { active: false, count: 18, id: 'info', label: 'Info' },
-  { active: false, count: 1, id: 'warn', label: 'Warn' },
-  { active: false, count: 1, id: 'error', label: 'Error' },
-] as const;
+const LEVELS: readonly PressItem[] = [
+  { count: 20, id: 'all', label: 'All', selected: true },
+  { count: 18, id: 'info', label: 'Info' },
+  { count: 1, id: 'warn', label: 'Warn' },
+  { count: 1, id: 'error', label: 'Error' },
+];
 
-const LOG_LINES = [
+const LOG_LINES: readonly LogLine[] = [
   {
     level: 'info',
     msg: 'Starting the instance "default" with VM driver "vz"',
@@ -120,81 +124,32 @@ const LOG_LINES = [
     msg: '[hostagent] Guest agent is running',
     t: '10-21 12:07:58',
   },
-] as const;
+];
 
-const LEVEL_LABELS = {
-  error: 'ERROR',
-  info: 'INFO',
-  warn: 'WARN',
-} as const;
-
-const LEVEL_STYLES = {
-  error:
-    'justify-self-start bg-primary px-1 text-primary-foreground text-shadow-none',
-  info: 'text-phosphor-dim',
-  warn: 'justify-self-start px-1 outline outline-1 -outline-offset-1',
-} as const;
-
-/* Instance / Logs: hostagent + serial logs with grep and level filters. */
-export function InstanceLogsScreen() {
+export function InstanceLogsPage() {
   return (
     <>
-      <main className="mx-auto flex w-full max-w-360 flex-1 flex-col gap-5 p-6">
-        <InstancePage active="logs" />
+      <PageLayout>
+        <InstanceHeader active="logs" />
 
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-          <div
+          <PressButtonGroup
             aria-label="Log file"
-            className="flex flex-wrap gap-2"
-            role="group"
-          >
-            {LOG_SOURCES.map(source => (
-              <Button
-                aria-pressed={source.active}
-                className="normal-case"
-                key={source.file}
-                type="button"
-                variant={source.active ? 'default' : 'outline'}
-              >
-                {source.file}
-              </Button>
-            ))}
-          </div>
-          <div aria-label="Level" className="flex flex-wrap gap-2" role="group">
-            {LEVELS.map(level => (
-              <Button
-                aria-pressed={level.active}
-                key={level.id}
-                type="button"
-                variant={level.active ? 'default' : 'outline'}
-              >
-                {level.label} {level.count}
-              </Button>
-            ))}
-          </div>
+            itemClassName="normal-case"
+            items={LOG_SOURCES}
+          />
+          <PressButtonGroup aria-label="Level" items={LEVELS} />
         </div>
 
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-          <label
-            className="flex max-w-130 flex-1 basis-[320px] items-center gap-2.5"
+          <PromptSearch
+            className="max-w-130 basis-[320px]"
             htmlFor="grep"
-          >
-            <span>GREP&gt;</span>
-            <Input
-              id="grep"
-              placeholder="forwarding, requirement, error..."
-              spellCheck={false}
-              type="search"
-            />
-          </label>
-          <span className="flex min-h-11 cursor-pointer items-center gap-2.5">
-            <Checkbox defaultChecked />
-            <span>FOLLOW</span>
-          </span>
-          <span className="flex min-h-11 cursor-pointer items-center gap-2.5">
-            <Checkbox />
-            <span>RAW JSON</span>
-          </span>
+            placeholder="forwarding, requirement, error..."
+            prompt="GREP>"
+          />
+          <CheckboxRow className="gap-2.5" defaultChecked label="FOLLOW" />
+          <CheckboxRow className="gap-2.5" label="RAW JSON" />
           <Button className="ml-auto" type="button" variant="outline">
             Copy path
           </Button>
@@ -206,29 +161,14 @@ export function InstanceLogsScreen() {
           title="~/.lima/default/ha.stderr.log"
         >
           <div aria-label="Log output" role="log">
-            {LOG_LINES.map(line => (
-              <div
-                className="grid grid-cols-[150px_72px_minmax(0,1fr)] gap-x-4 px-4 py-px hover:bg-phosphor-faint"
-                key={`${line.t} ${line.msg}`}
-              >
-                <span className="whitespace-nowrap text-phosphor-dim">
-                  {line.t}
-                </span>
-                <span className={cn(LEVEL_STYLES[line.level])}>
-                  {LEVEL_LABELS[line.level]}
-                </span>
-                <span className="whitespace-pre-wrap wrap-anywhere">
-                  {line.msg}
-                </span>
-              </div>
-            ))}
+            <LogViewer lines={LOG_LINES} />
             <p className="px-4 pt-2 pb-1 text-phosphor-dim">
               FOLLOWING
               <CrtCursor />
             </p>
           </div>
         </CrtSection>
-      </main>
+      </PageLayout>
       <AppFooter
         keys={[
           ['/', 'GREP'],

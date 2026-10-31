@@ -1,15 +1,18 @@
 import { Link } from 'wouter';
-import { CrtCells, CrtDot, CrtKey } from '../components/crt.tsx';
+import { CheckboxRow } from '../components/checkbox-row.tsx';
+import { CommandBlock } from '../components/command-preview.tsx';
+import { CrtDot, CrtKey } from '../components/crt.tsx';
 import { CrtDialog } from '../components/crt-dialog.tsx';
+import { LabeledField } from '../components/labeled-field.tsx';
+import { ResourceMeter } from '../components/resource-meter.tsx';
 import { Button, buttonVariants } from '../components/ui/button.tsx';
-import { Checkbox } from '../components/ui/checkbox.tsx';
 import { Input } from '../components/ui/input.tsx';
 import { cn } from '../lib/utils.ts';
 import { uiRoutes } from '../routes/ui.ts';
 
 const CLONE_CMD = '$ limactl clone k3s-lab k3s-lab-2 --start';
 
-export function CloneDialogScreen() {
+export function CloneDialogPage() {
   return (
     <main className="flex flex-1 items-center justify-center p-10">
       <CrtDialog
@@ -47,13 +50,12 @@ export function CloneDialogScreen() {
           </span>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label
-            className="tracking-[0.08em] text-phosphor-dim"
-            htmlFor="clone-name"
-          >
-            NEW NAME
-          </label>
+        <LabeledField
+          htmlFor="clone-name"
+          label="NEW NAME"
+          message="OK -> ~/.lima/k3s-lab-2"
+          messageId="clone-msg"
+        >
           <Input
             aria-describedby="clone-msg"
             autoComplete="off"
@@ -61,67 +63,41 @@ export function CloneDialogScreen() {
             id="clone-name"
             spellCheck={false}
           />
-          <p id="clone-msg">OK -&gt; ~/.lima/k3s-lab-2</p>
-        </div>
+        </LabeledField>
 
         <div className="flex flex-col gap-2.5">
           <p className="tracking-[0.08em] text-phosphor-dim">
             RESOURCES (OPTIONAL OVERRIDE)
           </p>
           <div className="grid grid-cols-[70px_44px_auto_44px_1fr] items-center gap-2.5">
-            <span>CPUS</span>
-            <Button
-              aria-label="Fewer CPUs"
-              className="w-11 px-0"
-              type="button"
-              variant="outline"
+            <ResourceMeter
+              decLabel="Fewer CPUs"
+              incLabel="More CPUs"
+              label="CPUS"
+              on={2}
+              total={10}
             >
-              -
-            </Button>
-            <CrtCells on={2} total={10} />
-            <Button
-              aria-label="More CPUs"
-              className="w-11 px-0"
-              type="button"
-              variant="outline"
+              2 vCPU
+            </ResourceMeter>
+            <ResourceMeter
+              decLabel="Less memory"
+              incLabel="More memory"
+              label="MEM"
+              on={2}
+              total={16}
             >
-              +
-            </Button>
-            <output>2 vCPU</output>
-            <span>MEM</span>
-            <Button
-              aria-label="Less memory"
-              className="w-11 px-0"
-              type="button"
-              variant="outline"
-            >
-              -
-            </Button>
-            <CrtCells on={2} total={16} />
-            <Button
-              aria-label="More memory"
-              className="w-11 px-0"
-              type="button"
-              variant="outline"
-            >
-              +
-            </Button>
-            <output>4 GiB</output>
+              4 GiB
+            </ResourceMeter>
           </div>
         </div>
 
-        <span className="flex min-h-11 cursor-pointer items-center gap-3">
-          <Checkbox defaultChecked />
-          <span>START AFTER CLONE</span>
-        </span>
+        <CheckboxRow defaultChecked label="START AFTER CLONE" />
 
         <p className="text-phosphor-dim">
           Copies lima.yaml and the disk. The clone gets its own SSH port.
         </p>
 
-        <pre className="overflow-x-auto border border-dashed border-phosphor-dim px-3 py-2.5 whitespace-pre">
-          {CLONE_CMD}
-        </pre>
+        <CommandBlock>{CLONE_CMD}</CommandBlock>
       </CrtDialog>
     </main>
   );

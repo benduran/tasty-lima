@@ -2,9 +2,8 @@ import type { UseEmblaCarouselType } from 'embla-carousel-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import * as React from 'react';
-
-import { Button } from './button.tsx';
 import { cn } from '../../lib/utils.ts';
+import { Button } from './button.tsx';
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;

@@ -1,8 +1,10 @@
 import { Link } from 'wouter';
+import { CheckboxRow } from '../components/checkbox-row.tsx';
+import { CommandBlock } from '../components/command-preview.tsx';
 import { CrtKey } from '../components/crt.tsx';
 import { CrtDialog } from '../components/crt-dialog.tsx';
+import { LabeledField } from '../components/labeled-field.tsx';
 import { Button, buttonVariants } from '../components/ui/button.tsx';
-import { Checkbox } from '../components/ui/checkbox.tsx';
 import { Input } from '../components/ui/input.tsx';
 import { cn } from '../lib/utils.ts';
 import { uiRoutes } from '../routes/ui.ts';
@@ -28,8 +30,7 @@ const LAUNCH_CMD = `limactl start --name=devbox \\
   --param goVersion=1.24.6 \\
   template:devbox`;
 
-/* New VM from template dialog: name, parameters and optional overrides. */
-export function NewVmFromTemplateScreen() {
+export function NewVmFromTemplatePage() {
   return (
     <main className="flex flex-1 items-center justify-center p-8">
       <CrtDialog
@@ -63,13 +64,12 @@ export function NewVmFromTemplateScreen() {
           </span>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label
-            className="tracking-[0.08em] text-phosphor-dim"
-            htmlFor="ln-name"
-          >
-            VM NAME
-          </label>
+        <LabeledField
+          htmlFor="ln-name"
+          label="VM NAME"
+          message="OK -> ~/.lima/devbox"
+          messageId="ln-msg"
+        >
           <Input
             aria-describedby="ln-msg"
             autoComplete="off"
@@ -77,8 +77,7 @@ export function NewVmFromTemplateScreen() {
             id="ln-name"
             spellCheck={false}
           />
-          <p id="ln-msg">OK -&gt; ~/.lima/devbox</p>
-        </div>
+        </LabeledField>
 
         <div className="flex flex-col gap-2.5">
           <p className="flex justify-between tracking-[0.08em] text-phosphor-dim">
@@ -121,17 +120,13 @@ export function NewVmFromTemplateScreen() {
         </div>
 
         <div className="flex flex-col gap-2.5">
-          <span className="flex min-h-11 cursor-pointer items-center gap-3">
-            <Checkbox />
-            <span>OVERRIDE RESOURCES</span>
-            <span className="text-phosphor-dim">TEMPLATE: 4 CPU · 8 GiB</span>
-          </span>
+          <CheckboxRow
+            hint="TEMPLATE: 4 CPU · 8 GiB"
+            label="OVERRIDE RESOURCES"
+          />
         </div>
 
-        <span className="flex min-h-11 cursor-pointer items-center gap-3">
-          <Checkbox defaultChecked />
-          <span>START AFTER CREATE</span>
-        </span>
+        <CheckboxRow defaultChecked label="START AFTER CREATE" />
 
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
@@ -142,9 +137,7 @@ export function NewVmFromTemplateScreen() {
               Copy
             </Button>
           </div>
-          <pre className="overflow-x-auto border border-dashed border-phosphor-dim px-3 py-2.5 leading-tight whitespace-pre">
-            {LAUNCH_CMD}
-          </pre>
+          <CommandBlock className="leading-tight">{LAUNCH_CMD}</CommandBlock>
         </div>
       </CrtDialog>
     </main>

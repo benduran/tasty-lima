@@ -1,12 +1,11 @@
 import { ChevronRightIcon } from 'lucide-react';
 import type * as React from 'react';
-
+import { cn } from '../../lib/utils.ts';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from './collapsible.tsx';
-import { cn } from '../../lib/utils.ts';
 
 function Trace({ className, ...props }: React.ComponentProps<'div'>) {
   return (

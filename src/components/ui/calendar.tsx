@@ -8,9 +8,8 @@ import {
 import * as React from 'react';
 import type { DayButton, Locale } from 'react-day-picker';
 import { DayPicker, getDefaultClassNames } from 'react-day-picker';
-
-import { Button, buttonVariants } from './button.tsx';
 import { cn } from '../../lib/utils.ts';
+import { Button, buttonVariants } from './button.tsx';
 
 function Calendar({
   className,

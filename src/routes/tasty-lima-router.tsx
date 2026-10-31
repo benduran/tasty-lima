@@ -1,15 +1,15 @@
 import { Redirect, Route, Switch } from 'wouter';
+import { CloneDialogPage } from '../pages/clone-dialog-page.tsx';
+import { InstanceConfigPage } from '../pages/instance-config-page.tsx';
+import { InstanceLogsPage } from '../pages/instance-logs-page.tsx';
+import { InstanceSshPage } from '../pages/instance-ssh-page.tsx';
 import { InstancesPage } from '../pages/instances-page.tsx';
+import { NewVmFromTemplatePage } from '../pages/new-vm-from-template-page.tsx';
 import { NewVmPage } from '../pages/new-vm-page.tsx';
-import { CloneDialogScreen } from '../screens/clone-dialog-screen.tsx';
-import { InstanceConfigScreen } from '../screens/instance-config-screen.tsx';
-import { InstanceLogsScreen } from '../screens/instance-logs-screen.tsx';
-import { InstanceSshScreen } from '../screens/instance-ssh-screen.tsx';
-import { NewVmFromTemplateScreen } from '../screens/new-vm-from-template-screen.tsx';
-import { ShareTemplateDialogScreen } from '../screens/share-template-dialog-screen.tsx';
-import { TemplatesEditorScreen } from '../screens/templates-editor-screen.tsx';
-import { TemplatesLibraryScreen } from '../screens/templates-library-screen.tsx';
-import { ThemeScreen } from '../screens/theme-screen.tsx';
+import { ShareTemplateDialogPage } from '../pages/share-template-dialog-page.tsx';
+import { TemplatesEditorPage } from '../pages/templates-editor-page.tsx';
+import { TemplatesLibraryPage } from '../pages/templates-library-page.tsx';
+import { ThemePage } from '../pages/theme-page.tsx';
 import { uiRoutes } from './ui.ts';
 
 export function TastyLimaRouter() {
@@ -25,31 +25,31 @@ export function TastyLimaRouter() {
         <NewVmPage />
       </Route>
       <Route path={uiRoutes.instanceConfig(':name')}>
-        <InstanceConfigScreen />
+        <InstanceConfigPage />
       </Route>
       <Route path={uiRoutes.instanceLogs(':name')}>
-        <InstanceLogsScreen />
+        <InstanceLogsPage />
       </Route>
       <Route path={uiRoutes.instanceSsh(':name')}>
-        <InstanceSshScreen />
+        <InstanceSshPage />
       </Route>
       <Route path={uiRoutes.instanceClone(':name')}>
-        <CloneDialogScreen />
+        <CloneDialogPage />
       </Route>
       <Route path={uiRoutes.templates()}>
-        <TemplatesLibraryScreen />
+        <TemplatesLibraryPage />
       </Route>
       <Route path={uiRoutes.templateEdit(':name')}>
-        <TemplatesEditorScreen />
+        <TemplatesEditorPage />
       </Route>
       <Route path={uiRoutes.templateShare(':name')}>
-        <ShareTemplateDialogScreen />
+        <ShareTemplateDialogPage />
       </Route>
       <Route path={uiRoutes.templateLaunch(':name')}>
-        <NewVmFromTemplateScreen />
+        <NewVmFromTemplatePage />
       </Route>
       <Route path={uiRoutes.theme()}>
-        <ThemeScreen />
+        <ThemePage />
       </Route>
     </Switch>
   );

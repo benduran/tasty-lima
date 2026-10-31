@@ -1,13 +1,12 @@
 import { CheckIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from './popover.tsx';
 import type { PhosphorVariant } from '../../hooks/use-phosphor.ts';
-import { PHOSPHOR_COLORS, PHOSPHOR_VARIANTS } from '../../hooks/use-phosphor.ts';
+import {
+  PHOSPHOR_COLORS,
+  PHOSPHOR_VARIANTS,
+} from '../../hooks/use-phosphor.ts';
 import { cn } from '../../lib/utils.ts';
+import { Popover, PopoverContent, PopoverTrigger } from './popover.tsx';
 
 type PhosphorPickerProps = {
   phosphor: PhosphorVariant;

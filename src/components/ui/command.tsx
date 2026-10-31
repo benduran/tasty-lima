@@ -1,7 +1,7 @@
 import { Command as CommandPrimitive } from 'cmdk';
 import { CheckIcon, SearchIcon } from 'lucide-react';
 import type * as React from 'react';
-
+import { cn } from '../../lib/utils.ts';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from './dialog.tsx';
 import { InputGroup, InputGroupAddon } from './input-group.tsx';
-import { cn } from '../../lib/utils.ts';
 
 function Command({
   className,

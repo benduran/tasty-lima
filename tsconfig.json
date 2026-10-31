@@ -5,13 +5,8 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "types": [
-      "vite/client",
-      "node"
-    ]
+    "types": ["vite/client", "node"]
   },
   "extends": "@cprussin/tsconfig/react.json",
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

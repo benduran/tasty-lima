@@ -1,9 +1,8 @@
 import { Link } from 'wouter';
-
-import { CrtDot } from './crt.tsx';
-import { Button, buttonVariants } from './ui/button.tsx';
 import { cn } from '../lib/utils.ts';
 import { uiRoutes } from '../routes/ui.ts';
+import { CrtDot } from './crt.tsx';
+import { Button, buttonVariants } from './ui/button.tsx';
 
 const INSTANCE_TABS = [
   { id: 'config', label: 'Config' },
@@ -19,12 +18,7 @@ const TAB_HREFS = {
   ssh: uiRoutes.instanceSsh('TODO'),
 } as const;
 
-/*
-  Shared chrome for the instance screens (Config / Logs / SSH): crumb,
-  instance title row with power actions, and the Overview/Config/Logs/SSH
-  tab strip. Content is placeholder data for the `default` instance.
-*/
-export function InstancePage({ active }: { active: InstanceTab }) {
+export function InstanceHeader({ active }: { active: InstanceTab }) {
   return (
     <div className="flex flex-col gap-3.5">
       <p className="text-phosphor-dim">

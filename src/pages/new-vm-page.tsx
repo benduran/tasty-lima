@@ -1,12 +1,9 @@
 import { useEffect, useMemo } from 'react';
-import {
-  CrtCells,
-  CrtFieldset,
-  CrtOption,
-  CrtSection,
-} from '../components/crt.tsx';
-import { Button } from '../components/ui/button.tsx';
-import { Checkbox } from '../components/ui/checkbox.tsx';
+import { CheckboxRow } from '../components/checkbox-row.tsx';
+import { CrtFieldset, CrtOption, CrtSection } from '../components/crt.tsx';
+import { LabeledField } from '../components/labeled-field.tsx';
+import { MountsTable } from '../components/mounts-table.tsx';
+import { ResourceMeter } from '../components/resource-meter.tsx';
 import { Input } from '../components/ui/input.tsx';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
 import { useQueryMachineInfo } from '../hooks/use-query-machine-info.ts';
@@ -101,13 +98,11 @@ export function NewVmPage() {
           contentClassName="flex flex-col gap-5 p-5"
           title="[1] IMAGE"
         >
-          <div className="flex max-w-105 flex-col gap-1.5">
-            <label
-              className="tracking-[0.08em] text-phosphor-dim"
-              htmlFor="vm-name"
-            >
-              INSTANCE NAME
-            </label>
+          <LabeledField
+            className="max-w-105"
+            htmlFor="vm-name"
+            label="INSTANCE NAME"
+          >
             <Input
               autoComplete="off"
               id="vm-name"
@@ -116,7 +111,7 @@ export function NewVmPage() {
               spellCheck={false}
               value={name || ''}
             />
-          </div>
+          </LabeledField>
           {/* <CrtFieldset legend="TEMPLATE">
             <RadioGroup
               className="grid grid-cols-[repeat(auto-fit,minmax(min(190px,100%),1fr))] gap-2"
@@ -198,69 +193,36 @@ export function NewVmPage() {
         >
           <div className="overflow-x-auto">
             <div className="grid min-w-135 grid-cols-[80px_44px_auto_44px_minmax(160px,1fr)] items-center gap-3">
-              <span>CPUS</span>
-              <Button
-                aria-label="Fewer CPUs"
-                className="w-11 px-0"
-                type="button"
-                variant="outline"
+              <ResourceMeter
+                decLabel="Fewer CPUs"
+                incLabel="More CPUs"
+                label="CPUS"
+                on={4}
+                outputClassName="text-xl"
+                total={10}
               >
-                -
-              </Button>
-              <CrtCells on={4} total={10} />
-              <Button
-                aria-label="More CPUs"
-                className="w-11 px-0"
-                type="button"
-                variant="outline"
-              >
-                +
-              </Button>
-              <output className="text-xl">
                 4 <span className="text-phosphor-dim">vCPU / 10</span>
-              </output>
-              <span>MEMORY</span>
-              <Button
-                aria-label="Less memory"
-                className="w-11 px-0"
-                type="button"
-                variant="outline"
+              </ResourceMeter>
+              <ResourceMeter
+                decLabel="Less memory"
+                incLabel="More memory"
+                label="MEMORY"
+                on={4}
+                outputClassName="text-xl"
+                total={16}
               >
-                -
-              </Button>
-              <CrtCells on={4} total={16} />
-              <Button
-                aria-label="More memory"
-                className="w-11 px-0"
-                type="button"
-                variant="outline"
-              >
-                +
-              </Button>
-              <output className="text-xl">
                 8 <span className="text-phosphor-dim">GiB / 32</span>
-              </output>
-              <span>DISK</span>
-              <Button
-                aria-label="Smaller disk"
-                className="w-11 px-0"
-                type="button"
-                variant="outline"
+              </ResourceMeter>
+              <ResourceMeter
+                decLabel="Smaller disk"
+                incLabel="Bigger disk"
+                label="DISK"
+                on={2}
+                outputClassName="text-xl"
+                total={10}
               >
-                -
-              </Button>
-              <CrtCells on={2} total={10} />
-              <Button
-                aria-label="Bigger disk"
-                className="w-11 px-0"
-                type="button"
-                variant="outline"
-              >
-                +
-              </Button>
-              <output className="text-xl">
                 100 <span className="text-phosphor-dim">GiB sparse</span>
-              </output>
+              </ResourceMeter>
             </div>
           </div>
           <p className="text-phosphor-dim">
@@ -288,62 +250,26 @@ export function NewVmPage() {
               </CrtOption>
             </RadioGroup>
           </CrtFieldset>
-          <div className="flex flex-col gap-2">
-            <div
-              aria-hidden="true"
-              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_76px_44px] gap-2 tracking-[0.08em] text-phosphor-dim"
-            >
-              <span>HOST PATH</span>
-              <span>GUEST PATH</span>
-              <span>ACCESS</span>
-              <span />
-            </div>
-            {mounts?.map(mount => (
-              <div
-                className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_76px_44px] items-center gap-2"
-                key={mount.location}
-              >
-                <Input
-                  aria-label={`Host path ${mount.location}`}
-                  defaultValue={mount.location}
-                  spellCheck={false}
-                />
-                <Input
-                  aria-label={`Guest path ${mount.mountPoint || ''}`}
-                  defaultValue={mount.mountPoint}
-                  placeholder="same as host"
-                  spellCheck={false}
-                />
-                <span className="flex min-h-11 cursor-pointer items-center gap-2">
-                  <Checkbox defaultChecked={mount.writable} />
-                  <span>RW</span>
-                </span>
-                <Button
-                  aria-label={`Remove mount ${mount.location}`}
-                  className="w-11 px-0"
-                  type="button"
-                  variant="outline"
-                >
-                  X
-                </Button>
-              </div>
-            ))}
-            <div>
-              <Button type="button" variant="outline">
-                + Add mount
-              </Button>
-            </div>
-          </div>
+          <MountsTable
+            mounts={
+              mounts?.map(mount => ({
+                guest: mount.mountPoint,
+                host: mount.location,
+                writable: mount.writable,
+              })) ?? []
+            }
+          />
         </CrtSection>
 
         <CrtSection
           contentClassName="flex flex-wrap gap-x-8 gap-y-3 p-5"
           title="[4] SSH"
         >
-          <span className="flex min-h-11 cursor-pointer items-center gap-2.5">
-            <Checkbox defaultChecked />
-            <span>FORWARD SSH AGENT</span>
-          </span>
+          <CheckboxRow
+            className="gap-2.5"
+            defaultChecked
+            label="FORWARD SSH AGENT"
+          />
           <p className="flex items-center text-phosphor-dim">
             USER ben · PORT AUTO · KEY ~/.lima/_config/user
           </p>

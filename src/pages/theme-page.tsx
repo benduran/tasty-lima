@@ -1,7 +1,6 @@
 import { AppFooter } from '../components/app-footers.tsx';
 import {
   CrtCells,
-  CrtCursor,
   CrtDot,
   CrtFieldset,
   CrtKey,
@@ -11,6 +10,7 @@ import {
 import { Button } from '../components/ui/button.tsx';
 import { Input } from '../components/ui/input.tsx';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
+import { PageLayout } from '../layouts/PageLayout.tsx';
 
 const PRESETS = [
   { hex: '#6CC6FF', name: 'BLUE', note: 'default', selected: true },
@@ -27,21 +27,15 @@ const SHADES = [
   { cls: 'border border-phosphor-line bg-background', label: 'SCREEN' },
 ] as const;
 
-/* Theme: pick the one phosphor colour that drives the whole screen. */
-export function ThemeScreen() {
+export function ThemePage() {
   return (
     <>
-      <main className="mx-auto flex w-full max-w-360 flex-1 flex-col gap-6 p-6">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-6xl">
-            THEME
-            <CrtCursor />
-          </h1>
-          <p className="text-phosphor-dim">
-            ONE PHOSPHOR COLOUR DRIVES THE WHOLE SCREEN.
-          </p>
-        </div>
-
+      <PageLayout
+        subheader={{
+          subtitle: 'ONE PHOSPHOR COLOUR DRIVES THE WHOLE SCREEN.',
+          title: 'Theme',
+        }}
+      >
         <div className="flex flex-wrap items-start gap-6">
           <CrtSection
             className="min-w-0 flex-[1_1_460px]"
@@ -183,7 +177,7 @@ export function ThemeScreen() {
             </CrtSection>
           </div>
         </div>
-      </main>
+      </PageLayout>
       <AppFooter
         keys={[
           ['1-4', 'PRESET'],

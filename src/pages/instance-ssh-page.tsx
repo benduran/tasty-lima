@@ -1,12 +1,18 @@
 import { AppFooter } from '../components/app-footers.tsx';
+import { CheckboxRow } from '../components/checkbox-row.tsx';
+import { CommandBlock } from '../components/command-preview.tsx';
 import { CrtFieldset, CrtOption, CrtSection } from '../components/crt.tsx';
-import { InstancePage } from '../components/instance-page.tsx';
+import { InstanceHeader } from '../components/instance-header.tsx';
+import type { ConnectCommand } from '../components/instance-ssh/connect-commands.tsx';
+import { ConnectCommands } from '../components/instance-ssh/connect-commands.tsx';
+import { LabeledField } from '../components/labeled-field.tsx';
+import { Panel } from '../components/panel.tsx';
 import { Button } from '../components/ui/button.tsx';
-import { Checkbox } from '../components/ui/checkbox.tsx';
 import { Input } from '../components/ui/input.tsx';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
+import { PageLayout } from '../layouts/PageLayout.tsx';
 
-const CONNECT_CMDS = [
+const CONNECT_CMDS: readonly ConnectCommand[] = [
   {
     cmd: 'limactl shell default',
     label: 'LIMACTL',
@@ -15,14 +21,12 @@ const CONNECT_CMDS = [
   {
     cmd: 'ssh -F ~/.lima/default/ssh.config lima-default',
     label: 'SSH VIA LIMA CONFIG',
-    primary: false,
   },
   {
     cmd: 'ssh -p 60022 -i ~/.lima/_config/user -o NoHostAuthenticationForLocalHost=yes ben@127.0.0.1',
     label: 'PLAIN SSH',
-    primary: false,
   },
-] as const;
+];
 
 const SSH_CONFIG = `# ~/.lima/default/ssh.config
 Host lima-default
@@ -51,38 +55,18 @@ ssh:
 const SSH_CONFIG_INCLUDE = `# ~/.ssh/config
   Include ~/.lima/*/ssh.config   (not added)`;
 
-/* Instance / SSH: connect commands, ssh settings and generated configs. */
-export function InstanceSshScreen() {
+export function InstanceSshPage() {
   return (
     <>
-      <main className="mx-auto flex w-full max-w-360 flex-1 flex-col gap-6 p-6">
-        <InstancePage active="ssh" />
+      <PageLayout>
+        <InstanceHeader active="ssh" />
 
         <CrtSection
           contentClassName="flex flex-col gap-3.5 p-5"
           label="127.0.0.1:60022"
           title="CONNECT"
         >
-          {CONNECT_CMDS.map(entry => (
-            <div
-              className="grid grid-cols-[minmax(150px,220px)_minmax(0,1fr)_auto] items-center gap-x-4"
-              key={entry.label}
-            >
-              <span className="tracking-[0.08em] text-phosphor-dim">
-                {entry.label}
-              </span>
-              <code className="flex min-h-11 items-center overflow-x-auto border border-dashed border-phosphor-dim px-3 text-[22px] whitespace-nowrap">
-                $ {entry.cmd}
-              </code>
-              <Button
-                aria-label={`Copy ${entry.label} command`}
-                type="button"
-                variant={entry.primary ? 'default' : 'outline'}
-              >
-                Copy
-              </Button>
-            </div>
-          ))}
+          <ConnectCommands entries={CONNECT_CMDS} />
         </CrtSection>
 
         <div className="flex flex-wrap items-start gap-6">
@@ -92,20 +76,14 @@ export function InstanceSshScreen() {
               title="SSH SETTINGS"
             >
               <div className="grid grid-cols-[repeat(auto-fit,minmax(min(240px,100%),1fr))] gap-5">
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    className="tracking-[0.08em] text-phosphor-dim"
-                    htmlFor="ssh-user"
-                  >
-                    GUEST USER
-                  </label>
+                <LabeledField htmlFor="ssh-user" label="GUEST USER">
                   <Input
                     autoComplete="off"
                     defaultValue="ben"
                     id="ssh-user"
                     spellCheck={false}
                   />
-                </div>
+                </LabeledField>
                 <CrtFieldset legend="LOCAL PORT">
                   <RadioGroup
                     className="flex flex-wrap gap-2"
@@ -131,23 +109,15 @@ export function InstanceSshScreen() {
               </div>
               <CrtFieldset legend="OPTIONS">
                 <div className="flex flex-col gap-1">
-                  <span className="flex min-h-11 cursor-pointer items-center gap-3">
-                    <Checkbox />
-                    <span>FORWARD SSH AGENT</span>
-                    <span className="text-phosphor-dim">ssh.forwardAgent</span>
-                  </span>
-                  <span className="flex min-h-11 cursor-pointer items-center gap-3">
-                    <Checkbox />
-                    <span>FORWARD X11</span>
-                    <span className="text-phosphor-dim">ssh.forwardX11</span>
-                  </span>
-                  <span className="flex min-h-11 cursor-pointer items-center gap-3">
-                    <Checkbox />
-                    <span>COPY ~/.ssh/*.pub INTO GUEST</span>
-                    <span className="text-phosphor-dim">
-                      ssh.loadDotSSHPubKeys
-                    </span>
-                  </span>
+                  <CheckboxRow
+                    hint="ssh.forwardAgent"
+                    label="FORWARD SSH AGENT"
+                  />
+                  <CheckboxRow hint="ssh.forwardX11" label="FORWARD X11" />
+                  <CheckboxRow
+                    hint="ssh.loadDotSSHPubKeys"
+                    label="COPY ~/.ssh/*.pub INTO GUEST"
+                  />
                 </div>
               </CrtFieldset>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -169,25 +139,21 @@ export function InstanceSshScreen() {
               label="NOT LINKED"
               title="~/.ssh/config"
             >
-              <span className="flex min-h-11 cursor-pointer items-center gap-3">
-                <Checkbox />
-                <span>LET PLAIN `ssh lima-default` WORK EVERYWHERE</span>
-              </span>
+              <CheckboxRow label="LET PLAIN `ssh lima-default` WORK EVERYWHERE" />
               <p className="text-phosphor-dim">
                 Adds one line to the top of ~/.ssh/config, so editors and other
                 tools can reach every Lima VM by its alias.
               </p>
-              <pre className="overflow-x-auto border border-dashed border-phosphor-dim px-3 py-2.5 whitespace-pre">
-                {SSH_CONFIG_INCLUDE}
-              </pre>
+              <CommandBlock>{SSH_CONFIG_INCLUDE}</CommandBlock>
             </CrtSection>
           </div>
 
-          <aside className="flex min-w-0 flex-[1_1_420px] flex-col border border-phosphor-dim">
-            <h2 className="flex justify-between gap-3 bg-primary px-3 py-0.5 text-[20px] tracking-[0.08em] text-primary-foreground text-shadow-none">
-              <span>ssh.config</span>
-              <span>GENERATED</span>
-            </h2>
+          <Panel
+            as="aside"
+            className="flex-[1_1_420px]"
+            meta="GENERATED"
+            title="ssh.config"
+          >
             <pre className="overflow-x-auto p-4 leading-tight whitespace-pre">
               {SSH_CONFIG}
             </pre>
@@ -199,9 +165,9 @@ export function InstanceSshScreen() {
             <pre className="overflow-x-auto px-4 pt-2 pb-4 leading-tight whitespace-pre">
               {LIMA_YAML}
             </pre>
-          </aside>
+          </Panel>
         </div>
-      </main>
+      </PageLayout>
       <AppFooter
         keys={[
           ['C', 'COPY SHELL CMD'],

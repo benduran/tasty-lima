@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'wouter';
-import { buttonVariants } from './ui/button.tsx';
+import { useQueryMachineInfo } from '../hooks/use-query-machine-info.ts';
 import { cn } from '../lib/utils.ts';
+import { MachineInfo } from './machine-info.tsx';
+import { buttonVariants } from './ui/button.tsx';
 
 const PRIMARY_NAV = [
   {
@@ -28,7 +30,12 @@ const PRIMARY_NAV = [
 ] as const;
 
 export function AppHeader() {
+  /** routing */
   const [location] = useLocation();
+
+  /** queries */
+  const { data: machineInfo, isPending: machineInfoLoading } =
+    useQueryMachineInfo();
 
   return (
     <header className="flex flex-wrap items-center gap-x-8 gap-y-3 border-b-[3px] border-double border-phosphor-dim px-6 py-3">
@@ -55,9 +62,9 @@ export function AppHeader() {
           );
         })}
       </nav>
-      <p className="ml-auto text-phosphor-dim">
-        darwin/arm64 · 10 CPU · 32 GiB
-      </p>
+      <span className="ml-auto">
+        <MachineInfo info={machineInfo} loading={machineInfoLoading} />
+      </span>
     </header>
   );
 }
