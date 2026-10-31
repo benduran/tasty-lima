@@ -377,15 +377,6 @@ export function TemplatesEditorPage() {
           </aside>
         </div>
       </PageLayout>
-      <AppFooter
-        keys={[
-          ['^S', 'SAVE'],
-          ['^Y', 'FORM/YAML'],
-          ['^R', 'NEW VM'],
-          ['ESC', 'BACK'],
-        ]}
-        note="~/.lima/_templates/devbox.yaml"
-      />
     </>
   );
 }

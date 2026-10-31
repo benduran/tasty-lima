@@ -168,14 +168,6 @@ export function InstanceSshPage() {
           </Panel>
         </div>
       </PageLayout>
-      <AppFooter
-        keys={[
-          ['C', 'COPY SHELL CMD'],
-          ['F4', 'CONFIG'],
-          ['F6', 'LOGS'],
-        ]}
-        note="~/.lima/default/ssh.config"
-      />
     </>
   );
 }

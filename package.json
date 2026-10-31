@@ -75,6 +75,7 @@
     "dev:cli": "tsx ./src/cli/tasty-lima.ts --noUI",
     "dev:ui": "vite",
     "fix:lint": "biome check --write .",
+    "gen:constants": "tsx ./scripts/inject-app-version.ts",
     "gen:lima-types": "tsx ./scripts/generate-lima-types.ts",
     "preview": "vite preview",
     "test:lint": "biome check .",

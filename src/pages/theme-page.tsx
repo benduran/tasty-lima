@@ -105,87 +105,8 @@ export function ThemePage() {
               </Button>
             </div>
           </CrtSection>
-
-          <div className="flex min-w-0 flex-[1_1_520px] flex-col gap-6">
-            <CrtSection
-              contentClassName="grid grid-cols-[repeat(auto-fit,minmax(min(200px,100%),1fr))] gap-4 p-5"
-              title="LEGIBILITY"
-            >
-              <div className="flex flex-col gap-1">
-                <span className="tracking-[0.08em] text-phosphor-dim">
-                  TEXT ON SCREEN
-                </span>
-                <span className="text-[44px] leading-none">10.5:1</span>
-                <span className="self-start">
-                  <CrtKey>PASS</CrtKey>
-                </span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="tracking-[0.08em] text-phosphor-dim">
-                  MUTED LABELS
-                </span>
-                <span className="text-[44px] leading-none text-phosphor-dim">
-                  6.4:1
-                </span>
-                <span className="self-start">
-                  <CrtKey>PASS</CrtKey>
-                </span>
-              </div>
-              <p className="col-span-full text-phosphor-dim">
-                Muted labels stay readable at 4.5:1 or better.
-              </p>
-            </CrtSection>
-
-            <CrtSection
-              contentClassName="grid grid-cols-[repeat(5,minmax(0,1fr))] gap-2 p-5"
-              title="DERIVED SHADES"
-            >
-              {SHADES.map(shade => (
-                <div className="flex flex-col gap-1.5" key={shade.label}>
-                  <span className={`h-14 ${shade.cls}`} />
-                  <span>{shade.label}</span>
-                </div>
-              ))}
-            </CrtSection>
-
-            <CrtSection
-              contentClassName="flex flex-col gap-3.5 p-5"
-              title="SAMPLE"
-            >
-              <div className="grid grid-cols-[20px_minmax(0,1fr)_auto_auto] items-center gap-3 bg-phosphor-faint px-3 py-2.5 outline -outline-offset-1 outline-primary">
-                <CrtDot variant="run" />
-                <span className="text-[23px]">default</span>
-                <span>RUNNING</span>
-                <CrtCells on={4} total={6} />
-              </div>
-              <p>
-                <span className="text-phosphor-dim">10-21 10:44:09</span>{' '}
-                <span className="px-1 outline-1 -outline-offset-1">WARN</span>{' '}
-                failed to set up forwarding tcp port 5432
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="default">
-                  Start
-                </Button>
-                <Button type="button" variant="outline">
-                  Logs
-                </Button>
-                <Button type="button" variant="ghost">
-                  Cancel
-                </Button>
-              </div>
-            </CrtSection>
-          </div>
         </div>
       </PageLayout>
-      <AppFooter
-        keys={[
-          ['1-4', 'PRESET'],
-          ['ENTER', 'APPLY'],
-          ['ESC', 'BACK'],
-        ]}
-        note="phosphor #6CC6FF"
-      />
     </>
   );
 }

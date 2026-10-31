@@ -188,16 +188,6 @@ export function TemplatesLibraryPage() {
           />
         </div>
       </PageLayout>
-      <AppFooter
-        keys={[
-          ['ENTER', 'NEW VM'],
-          ['E', 'EDIT'],
-          ['S', 'SHARE'],
-          ['D', 'DUPLICATE'],
-          ['/', 'FILTER'],
-        ]}
-        note="~/.lima/_templates"
-      />
     </>
   );
 }

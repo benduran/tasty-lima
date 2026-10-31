@@ -153,16 +153,6 @@ export function InstanceConfigPage() {
           </Panel>
         </div>
       </PageLayout>
-      <AppFooter
-        keys={[
-          ['F5', 'STOP'],
-          ['F6', 'LOGS'],
-          ['F7', 'SSH'],
-          ['^S', 'SAVE'],
-          ['ESC', 'DISCARD'],
-        ]}
-        note="~/.lima/default/lima.yaml"
-      />
     </>
   );
 }

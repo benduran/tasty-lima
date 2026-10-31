@@ -169,16 +169,6 @@ export function InstanceLogsPage() {
           </div>
         </CrtSection>
       </PageLayout>
-      <AppFooter
-        keys={[
-          ['/', 'GREP'],
-          ['F', 'FOLLOW'],
-          ['G', 'JUMP TO END'],
-          ['F4', 'CONFIG'],
-          ['F7', 'SSH'],
-        ]}
-        note="$ tail -f ~/.lima/default/ha.stderr.log"
-      />
     </>
   );
 }
