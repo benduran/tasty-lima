@@ -215,8 +215,31 @@ async function extractArchive(
   installDir: string,
   archiveExtension: string,
 ): Promise<void> {
-  const flags = archiveExtension === 'zip' ? ['-xf'] : ['-xzf'];
-  await $({ cwd: installDir })`tar ${flags} ${path.basename(archivePath)}`;
+  if (archiveExtension !== 'zip') {
+    await $({ cwd: installDir })`tar -xzf ${path.basename(archivePath)}`;
+    return;
+  }
+
+  // bsdtar reads zips but is absent on older/minimal windows SKUs, so fall
+  // back to powershell's Expand-Archive on any miss or failure
+  const zip = path.basename(archivePath);
+  const systemTar = path.join(
+    process.env.SystemRoot ?? 'C:\\Windows',
+    'System32',
+    'tar.exe',
+  );
+  if (await fileExists(systemTar)) {
+    try {
+      await $({ cwd: installDir })`${systemTar} -xf ${zip}`;
+      return;
+    } catch {
+      logger.warn(`${systemTar} failed to extract ${zip}; trying powershell`);
+    }
+  }
+  // -Force cleans up after a partially-successful bsdtar run
+  await $({
+    cwd: installDir,
+  })`powershell.exe -NoProfile -NonInteractive -Command ${`Expand-Archive -LiteralPath '${zip}' -DestinationPath '.' -Force`}`;
 }
 
 async function downloadLimaCtl(): Promise<string> {
@@ -264,7 +287,11 @@ async function downloadLimaCtl(): Promise<string> {
             cause: error,
           })
         : error;
-    logger.error(installError);
+    logger.error(
+      installError instanceof Error
+        ? installError.message
+        : String(installError),
+    );
     throw installError;
   }
   await fs.rm(archivePath, { force: true });
