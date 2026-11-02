@@ -28,6 +28,8 @@ export function NewVmPage() {
   const [arch, setArch] = useNewVMStore('config.arch');
   const [vmType, setVmType] = useNewVMStore('config.vmType');
   const [mounts] = useNewVMStore('config.mounts');
+  const [cpus, setCpus] = useNewVMStore('config.cpus');
+  const [ram, setRam] = useNewVMStore('config.memory');
 
   /** memos */
   const currentMachineArch = useMemo<Nullish<LimaArch>>(() => {
@@ -197,21 +199,29 @@ export function NewVmPage() {
                 decLabel="Fewer CPUs"
                 incLabel="More CPUs"
                 label="CPUS"
-                on={4}
+                on={cpus ?? 0}
+                onChange={setCpus}
                 outputClassName="text-xl"
-                total={10}
+                total={machineInfo?.cpus ?? 1}
               >
-                4 <span className="text-phosphor-dim">vCPU / 10</span>
+                {cpus ?? 1}{' '}
+                <span className="text-phosphor-dim">
+                  vCPU / {machineInfo?.cpus}
+                </span>
               </ResourceMeter>
               <ResourceMeter
                 decLabel="Less memory"
                 incLabel="More memory"
                 label="MEMORY"
-                on={4}
+                on={Number(ram ?? 1)}
+                onChange={newVal => setRam(String(newVal))}
                 outputClassName="text-xl"
-                total={16}
+                total={machineInfo?.ram ?? 0}
               >
-                8 <span className="text-phosphor-dim">GiB / 32</span>
+                {ram ?? 1}{' '}
+                <span className="text-phosphor-dim">
+                  GiB / {machineInfo?.ram}
+                </span>
               </ResourceMeter>
               <ResourceMeter
                 decLabel="Smaller disk"
