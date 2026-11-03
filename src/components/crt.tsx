@@ -4,7 +4,13 @@ import { cn } from '../lib/utils.ts';
 const CELL = 'inline-block h-[18px] w-[10px] flex-none' as const;
 
 /** One resource meter cell (spec `.cell-*`). */
-export function CrtCell({ state }: { state: 'new' | 'off' | 'on' }) {
+export function CrtCell({
+  className,
+  state,
+}: {
+  className?: string | undefined;
+  state: 'new' | 'off' | 'on';
+}) {
   return (
     <span
       aria-hidden="true"
@@ -14,6 +20,7 @@ export function CrtCell({ state }: { state: 'new' | 'off' | 'on' }) {
         state === 'new' &&
           'border border-primary shadow-[inset_0_0_0_2px_var(--bg),inset_0_0_0_10px_var(--p-line)]',
         state === 'off' && 'border border-phosphor-line',
+        className,
       )}
     />
   );
@@ -22,6 +29,7 @@ export function CrtCell({ state }: { state: 'new' | 'off' | 'on' }) {
 /**
  * Resource cell meter (spec `.cell-*`). `on` cells are lit, cells between
  * `was` and `on` are the "added" outline cells, the rest are hollow.
+ * Pass `cellClassName` to flex the cells into a fixed-width bar.
  */
 function cellState(i: number, on: number, was: number): 'new' | 'off' | 'on' {
   if (i < Math.min(on, was)) return 'on';
@@ -30,18 +38,26 @@ function cellState(i: number, on: number, was: number): 'new' | 'off' | 'on' {
 }
 
 export function CrtCells({
+  cellClassName,
+  className,
   on,
   total,
   was = on,
 }: {
+  cellClassName?: string | undefined;
+  className?: string | undefined;
   on: number;
   total: number;
-  was?: number;
+  was?: number | undefined;
 }) {
   return (
-    <span aria-hidden="true" className="flex gap-1">
+    <span aria-hidden="true" className={cn('flex gap-1', className)}>
       {Array.from({ length: total }, (_, i) => (
-        <CrtCell key={i} state={cellState(i, on, was)} />
+        <CrtCell
+          className={cellClassName}
+          key={i}
+          state={cellState(i, on, was)}
+        />
       ))}
     </span>
   );

@@ -38,7 +38,7 @@ export function InstanceConfigPage() {
               title="RESOURCES"
             >
               <div className="overflow-x-auto">
-                <div className="grid min-w-145 grid-cols-[80px_44px_auto_44px_minmax(200px,1fr)] items-center gap-3">
+                <div className="grid min-w-145 grid-cols-[80px_auto_minmax(200px,1fr)] items-center gap-3">
                   <ResourceMeter
                     decLabel="Fewer CPUs"
                     incLabel="More CPUs"

@@ -26,6 +26,10 @@ export const MachineInfoSchema = z.object({
    **/
   cpus: z.int().positive(),
   /**
+   * amount, in gigabytes, available on the current mount point
+   */
+  diskSpace: z.int().positive(),
+  /**
    * operating system for the machine
    */
   platform: z.enum<NodeJS.Platform[]>([

@@ -5,5 +5,5 @@ import { createApiRouteHandler } from './util.ts';
 export const GET_machineInfo = createApiRouteHandler(
   apiRoutes.machineInfo(),
   'get',
-  ctx => ctx.json(getMachineInfo()),
+  async ctx => ctx.json(await getMachineInfo()),
 );

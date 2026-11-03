@@ -69,7 +69,7 @@ export function CloneDialogPage() {
           <p className="tracking-[0.08em] text-phosphor-dim">
             RESOURCES (OPTIONAL OVERRIDE)
           </p>
-          <div className="grid grid-cols-[70px_44px_auto_44px_1fr] items-center gap-2.5">
+          <div className="grid grid-cols-[70px_auto_1fr] items-center gap-2.5">
             <ResourceMeter
               decLabel="Fewer CPUs"
               incLabel="More CPUs"

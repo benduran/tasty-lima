@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { Fragment, useEffect, useMemo } from 'react';
 import { CheckboxRow } from '../components/checkbox-row.tsx';
 import { CrtFieldset, CrtOption, CrtSection } from '../components/crt.tsx';
 import { LabeledField } from '../components/labeled-field.tsx';
@@ -9,13 +9,16 @@ import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
 import { useQueryMachineInfo } from '../hooks/use-query-machine-info.ts';
 import { PageLayout } from '../layouts/PageLayout.tsx';
 import { uiRoutes } from '../routes/ui.ts';
-import type { LimaArch, LimaVMType } from '../shared/limactl-types.gen.ts';
+import type { LimaVMType } from '../shared/limactl-types.gen.ts';
 import {
   LimaArchSchema,
+  LimaMountTypeSchema,
   LimaVMTypeSchema,
 } from '../shared/limactl-types.gen.ts';
-import type { Nullish } from '../shared/types.ts';
-import { isNullOrUndefined } from '../shared/util.ts';
+import {
+  isNullOrUndefined,
+  machineInfoArchToLimaArch,
+} from '../shared/util.ts';
 import { useNewVMStore } from '../stores/new-vm-store.ts';
 
 /* New VM: the create form with a live lima.yaml preview aside. */
@@ -27,27 +30,14 @@ export function NewVmPage() {
   const [name, setName] = useNewVMStore('name');
   const [arch, setArch] = useNewVMStore('config.arch');
   const [vmType, setVmType] = useNewVMStore('config.vmType');
-  const [mounts] = useNewVMStore('config.mounts');
+  const [mounts, setMounts] = useNewVMStore('config.mounts');
   const [cpus, setCpus] = useNewVMStore('config.cpus');
   const [ram, setRam] = useNewVMStore('config.memory');
+  const [mountType, setMountType] = useNewVMStore('config.mountType');
+  const [disk, setDisk] = useNewVMStore('config.disk');
 
   /** memos */
-  const currentMachineArch = useMemo<Nullish<LimaArch>>(() => {
-    switch (machineInfo?.arch) {
-      case 'arm64':
-        return 'aarch64';
-      case 'ppc64':
-        return 'ppc64le';
-      case 'riscv64':
-        return 'riscv64';
-      case 's390x':
-        return 's390x';
-      case 'x64':
-        return 'x86_64';
-      default:
-        return null;
-    }
-  }, [machineInfo?.arch]);
+  const currentMachineArch = machineInfoArchToLimaArch(machineInfo?.arch);
 
   /** vz is macOS-only (Apple Virtualization), but qemu works everywhere */
   const vmTypes = useMemo<Array<{ desc: string; value: LimaVMType }>>(() => {
@@ -84,6 +74,12 @@ export function NewVmPage() {
 
     if (arch !== currentMachineArch) setVmType('qemu');
   }, [arch, currentMachineArch, setVmType, vmType]);
+
+  useEffect(() => {
+    setCpus(1);
+    setRam(String(1));
+    setMountType('virtiofs');
+  }, [setMountType, setCpus, setRam]);
 
   return (
     <PageLayout
@@ -194,7 +190,7 @@ export function NewVmPage() {
           title="[2] RESOURCES"
         >
           <div className="overflow-x-auto">
-            <div className="grid min-w-135 grid-cols-[80px_44px_auto_44px_minmax(160px,1fr)] items-center gap-3">
+            <div className="grid min-w-135 grid-cols-[80px_auto_minmax(160px,1fr)] items-center gap-3">
               <ResourceMeter
                 decLabel="Fewer CPUs"
                 incLabel="More CPUs"
@@ -216,7 +212,7 @@ export function NewVmPage() {
                 on={Number(ram ?? 1)}
                 onChange={newVal => setRam(String(newVal))}
                 outputClassName="text-xl"
-                total={machineInfo?.ram ?? 0}
+                total={machineInfo?.ram ?? 1}
               >
                 {ram ?? 1}{' '}
                 <span className="text-phosphor-dim">
@@ -227,18 +223,16 @@ export function NewVmPage() {
                 decLabel="Smaller disk"
                 incLabel="Bigger disk"
                 label="DISK"
-                on={2}
+                on={Number(disk ?? 100)}
+                onChange={newVal => setDisk(String(newVal))}
                 outputClassName="text-xl"
-                total={10}
+                step={10}
+                total={machineInfo?.diskSpace ?? 100}
               >
-                100 <span className="text-phosphor-dim">GiB sparse</span>
+                {disk} <span className="text-phosphor-dim">GiB</span>
               </ResourceMeter>
             </div>
           </div>
-          <p className="text-phosphor-dim">
-            RUNNING VMS USE 8 CPU / 12 GiB. WITH THIS ONE: 12 CPU / 20 GiB (CPU
-            MAY OVERCOMMIT)
-          </p>
         </CrtSection>
 
         <CrtSection
@@ -247,26 +241,42 @@ export function NewVmPage() {
         >
           <CrtFieldset legend="MOUNT TYPE">
             <RadioGroup
-              className="flex flex-wrap gap-2"
-              defaultValue="virtiofs"
+              onValueChange={newMountType => {
+                const validated = LimaMountTypeSchema.safeParse(newMountType);
+                if (validated.success) {
+                  setMountType(validated.data);
+                }
+              }}
+              value={mountType}
             >
               <CrtOption sel>
-                <RadioGroupItem value="virtiofs" />
-                <span>virtiofs</span>
-              </CrtOption>
-              <CrtOption>
-                <RadioGroupItem value="reverse-sshfs" />
-                <span>reverse-sshfs</span>
+                {LimaMountTypeSchema.options.map(mountType => (
+                  <Fragment key={mountType}>
+                    <RadioGroupItem
+                      className="not-first:ml-4"
+                      id={mountType}
+                      value={mountType}
+                    />
+                    <label className="hover:cursor-pointer" htmlFor={mountType}>
+                      {mountType}
+                    </label>
+                  </Fragment>
+                ))}
               </CrtOption>
             </RadioGroup>
           </CrtFieldset>
           <MountsTable
-            mounts={
-              mounts?.map(mount => ({
-                guest: mount.mountPoint,
-                host: mount.location,
-                writable: mount.writable,
-              })) ?? []
+            mounts={mounts ?? []}
+            onAddMount={() =>
+              setMounts(prev => [...(prev ?? []), { location: '' }])
+            }
+            onChangeMount={(index, updated) =>
+              setMounts(prev =>
+                prev?.map((m, i) => (index === i ? updated : m)),
+              )
+            }
+            onRemoveMount={index =>
+              setMounts(prev => prev?.filter((_, i) => index !== i))
             }
           />
         </CrtSection>

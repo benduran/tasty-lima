@@ -184,6 +184,9 @@ importers:
       '@tanstack/react-query':
         specifier: 5.104.4
         version: 5.104.4(@types/react@19.3.0)(react@19.3.1)
+      check-disk-space:
+        specifier: ^4.0.0
+        version: 4.0.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1565,6 +1568,9 @@ packages:
 
   character-entities-legacy@3.0.0:
     resolution: {integrity: sha512-RpPp0asT/6ufRm//AJVwpViZbGM/MkjQFxJccQRHmISF/22NBtsHqAWmL+/pmkPWoIUJdWyeVleTl1wydHATVQ==}
+
+  check-disk-space@4.0.0:
+    resolution: {integrity: sha512-IopHYYq3Y+QOZpJJ2OiqNqrA9nS0FSB0B6kDgC52cWAOGC7WnsaIJoUCxpQ/980Z1Cox2FhtKXeaJBx3Yv7ncA==}
 
   chownr@3.0.0:
     resolution: {integrity: sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==}
@@ -4332,6 +4338,8 @@ snapshots:
   character-entities-html4@2.1.0: {}
 
   character-entities-legacy@3.0.0: {}
+
+  check-disk-space@4.0.0: {}
 
   chownr@3.0.0: {}
 

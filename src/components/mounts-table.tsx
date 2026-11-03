@@ -1,14 +1,21 @@
+import type { LimaMount } from '../shared/types.ts';
 import { CheckboxRow } from './checkbox-row.tsx';
 import { Button } from './ui/button.tsx';
 import { Input } from './ui/input.tsx';
 
-export type MountRow = {
-  guest?: string | undefined;
-  host: string;
-  writable?: boolean | undefined;
+type MountsTableProps = {
+  onAddMount: () => void;
+  onChangeMount: (index: number, mount: LimaMount) => void;
+  onRemoveMount: (index: number) => void;
+  mounts: LimaMount[];
 };
 
-export function MountsTable({ mounts }: { mounts: readonly MountRow[] }) {
+export function MountsTable({
+  onAddMount,
+  onChangeMount,
+  onRemoveMount,
+  mounts,
+}: MountsTableProps) {
   return (
     <div className="flex flex-col gap-2">
       <div
@@ -20,30 +27,43 @@ export function MountsTable({ mounts }: { mounts: readonly MountRow[] }) {
         <span>ACCESS</span>
         <span />
       </div>
-      {mounts.map(mount => (
+      {mounts.map((mount, i) => (
         <div
           className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_76px_44px] items-center gap-2"
-          key={mount.host}
+          key={`mount-${i}`}
         >
           <Input
-            aria-label={`Host path ${mount.host}`}
-            defaultValue={mount.host}
+            aria-label={`Host path ${mount.mountPoint}`}
+            onChange={e =>
+              onChangeMount(i, {
+                ...mount,
+                mountPoint: e.currentTarget.value,
+              })
+            }
             spellCheck={false}
+            value={mount.mountPoint ?? ''}
           />
           <Input
-            aria-label={`Guest path ${mount.guest ?? ''}`}
-            defaultValue={mount.guest}
+            aria-label={`Guest path ${mount.location ?? ''}`}
+            onChange={e =>
+              onChangeMount(i, { ...mount, location: e.currentTarget.value })
+            }
             placeholder="same as host"
             spellCheck={false}
+            value={mount.location ?? ''}
           />
           <CheckboxRow
+            checked={mount.writable}
             className="gap-2"
-            defaultChecked={mount.writable}
             label="RW"
+            onCheckedChange={checked =>
+              onChangeMount(i, { ...mount, writable: checked })
+            }
           />
           <Button
-            aria-label={`Remove mount ${mount.host}`}
+            aria-label={`Remove mount ${mount.location}`}
             className="w-11 px-0"
+            onClick={() => onRemoveMount(i)}
             type="button"
             variant="outline"
           >
@@ -52,7 +72,7 @@ export function MountsTable({ mounts }: { mounts: readonly MountRow[] }) {
         </div>
       ))}
       <div>
-        <Button type="button" variant="outline">
+        <Button onClick={() => onAddMount()} type="button" variant="outline">
           + Add mount
         </Button>
       </div>
