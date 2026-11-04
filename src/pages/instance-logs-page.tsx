@@ -1,4 +1,3 @@
-import { AppFooter } from '../components/app-footers.tsx';
 import { CheckboxRow } from '../components/checkbox-row.tsx';
 import { CrtCursor, CrtSection } from '../components/crt.tsx';
 import { InstanceHeader } from '../components/instance-header.tsx';

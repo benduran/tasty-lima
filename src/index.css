@@ -64,17 +64,6 @@
   color-scheme: dark;
 }
 
-/* Swap the tube */
-[data-phosphor="green"] {
-  --p: #33ff66;
-}
-[data-phosphor="amber"] {
-  --p: #ffb000;
-}
-[data-phosphor="pale"] {
-  --p: #e8f1f2;
-}
-
 @theme inline {
   --font-heading: "VT323", ui-monospace, Menlo, Consolas, monospace;
   --font-sans: "VT323", ui-monospace, Menlo, Consolas, monospace;

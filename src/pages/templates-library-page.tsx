@@ -1,5 +1,4 @@
 import { Link } from 'wouter';
-import { AppFooter } from '../components/app-footers.tsx';
 import type { PressItem } from '../components/press-button-group.tsx';
 import { PressButtonGroup } from '../components/press-button-group.tsx';
 import { PromptSearch } from '../components/prompt-search.tsx';

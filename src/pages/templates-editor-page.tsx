@@ -1,5 +1,4 @@
 import { Link } from 'wouter';
-import { AppFooter } from '../components/app-footers.tsx';
 import { CheckboxRow } from '../components/checkbox-row.tsx';
 import {
   CrtCursor,

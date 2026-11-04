@@ -75,13 +75,14 @@ export function CrtSection({
   contentClassName?: string;
   footer?: ReactNode;
   label?: ReactNode;
-  title: ReactNode;
+  title?: ReactNode;
 }>) {
   return (
     <section className={cn('border border-phosphor-dim', className)}>
       <h2 className="flex justify-between gap-3 bg-primary px-3 py-0.5 text-[20px] tracking-[0.08em] text-primary-foreground text-shadow-none">
-        <span>{title}</span>
-        {label ? <span>{label}</span> : null}
+        {/* non-breaking space keeps the overall header height without collapsing it */}
+        <span>{title || <>&nbsp;</>}</span>
+        {label && <span>{label}</span>}
       </h2>
       <div className={contentClassName}>{children}</div>
       {footer && <div className="bg-phosphor">{footer}</div>}

@@ -1,14 +1,13 @@
-import { AppFooter } from '../components/app-footers.tsx';
 import { CrtCell, CrtSection } from '../components/crt.tsx';
 import { InstanceHeader } from '../components/instance-header.tsx';
-import type { MountRow } from '../components/mounts-table.tsx';
 import { MountsTable } from '../components/mounts-table.tsx';
 import { Panel } from '../components/panel.tsx';
 import { ResourceMeter } from '../components/resource-meter.tsx';
 import { Button } from '../components/ui/button.tsx';
 import { PageLayout } from '../layouts/PageLayout.tsx';
+import type { LimaMount } from '../shared/types.ts';
 
-const MOUNTS: readonly MountRow[] = [
+const MOUNTS: readonly LimaMount[] = [
   { guest: '', host: '~', writable: false },
   { guest: '', host: '/tmp/lima', writable: true },
 ];
