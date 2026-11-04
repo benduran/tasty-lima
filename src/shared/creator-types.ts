@@ -17,6 +17,19 @@ import { LimaPortForwardSchema, LimaYAMLSchema } from './limactl-types.gen.ts';
  *   starting draft
  */
 
+export const PortNumberSchema = z
+  .string()
+  .regex(/^\d{1,5}$/, {
+    error: 'please specify a port number',
+  })
+  .transform(Number)
+  .pipe(z.int().min(1).max(65_535));
+export type PortNumber = z.infer<typeof PortNumberSchema>;
+
+export const UserNameSchema = z.string().regex(/^[a-z_][a-z0-9_-]{0,31}$/, {
+  error: 'please specify a valid unix username',
+});
+
 /**
  * A port forward as `limactl create` reads it: the ranges are optional and
  * left off for single-port forwards.
@@ -25,6 +38,7 @@ export const PortForwardInputSchema = LimaPortForwardSchema.extend({
   guestPortRange: z.tuple([z.int(), z.int()]).optional(),
   hostPortRange: z.tuple([z.int(), z.int()]).optional(),
 });
+export type PortForwardInput = z.infer<typeof PortForwardInputSchema>;
 
 /**
  * A LimaYAML that `limactl create` accepts: the generated LimaYAML with only

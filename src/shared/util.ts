@@ -1,7 +1,39 @@
+import type { ZodType } from 'zod';
 import type { LimaArch, MachineInfo, Nullish } from './types.ts';
 
 export function isNullOrUndefined(thing: unknown): thing is null | undefined {
   return typeof thing === 'undefined' || thing === undefined || thing === null;
+}
+
+export function omit<T extends object, K extends keyof T>(
+  thing: T,
+  keys: K[],
+): Omit<T, K> {
+  const out = {} as Omit<T, K>;
+
+  for (const [key, value] of Object.entries(thing)) {
+    if (keys.includes(key as K)) continue;
+
+    // @ts-expect-error - yes, I can index this, thank you very much
+    out[key] = value;
+  }
+
+  return out;
+}
+
+export function withValidatedField<T extends object, K extends keyof T>(
+  thing: T,
+  key: K,
+  rawValue: string,
+  schema: ZodType<NonNullable<T[K]>, string>,
+): T {
+  const cleared = omit(thing, [key]) as T;
+  if (rawValue === '') return cleared;
+
+  const validated = schema.safeParse(rawValue);
+  if (!validated.success) return thing;
+
+  return { ...cleared, [key]: validated.data } as T;
 }
 
 export function isObject(thing: unknown) {

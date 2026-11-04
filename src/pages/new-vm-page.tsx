@@ -3,13 +3,19 @@ import { CheckboxRow } from '../components/checkbox-row.tsx';
 import { CrtFieldset, CrtOption, CrtSection } from '../components/crt.tsx';
 import { LabeledField } from '../components/labeled-field.tsx';
 import { MountsTable } from '../components/mounts-table.tsx';
+import { PortsTable } from '../components/ports-table.tsx';
 import { ResourceMeter } from '../components/resource-meter.tsx';
 import { Input } from '../components/ui/input.tsx';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
 import { useQueryMachineInfo } from '../hooks/use-query-machine-info.ts';
 import { PageLayout } from '../layouts/PageLayout.tsx';
 import { uiRoutes } from '../routes/ui.ts';
-import type { LimaVMType } from '../shared/limactl-types.gen.ts';
+import { PortNumberSchema, UserNameSchema } from '../shared/creator-types.ts';
+import type {
+  LimaSSH,
+  LimaUser,
+  LimaVMType,
+} from '../shared/limactl-types.gen.ts';
 import {
   LimaArchSchema,
   LimaMountTypeSchema,
@@ -18,6 +24,7 @@ import {
 import {
   isNullOrUndefined,
   machineInfoArchToLimaArch,
+  withValidatedField,
 } from '../shared/util.ts';
 import { useNewVMStore } from '../stores/new-vm-store.ts';
 
@@ -35,9 +42,15 @@ export function NewVmPage() {
   const [ram, setRam] = useNewVMStore('config.memory');
   const [mountType, setMountType] = useNewVMStore('config.mountType');
   const [disk, setDisk] = useNewVMStore('config.disk');
+  const [portForwards, setPortForwards] = useNewVMStore('config.portForwards');
+  const [ssh, setSSH] = useNewVMStore('config.ssh');
+  const [user, setUser] = useNewVMStore('config.user');
 
   /** memos */
   const currentMachineArch = machineInfoArchToLimaArch(machineInfo?.arch);
+
+  const sshDraft: LimaSSH = ssh ?? {};
+  const userDraft: LimaUser = user ?? {};
 
   /** vz is macOS-only (Apple Virtualization), but qemu works everywhere */
   const vmTypes = useMemo<Array<{ desc: string; value: LimaVMType }>>(() => {
@@ -282,16 +295,91 @@ export function NewVmPage() {
         </CrtSection>
 
         <CrtSection
-          contentClassName="flex flex-wrap gap-x-8 gap-y-3 p-5"
-          title="[4] SSH"
+          contentClassName="flex flex-col gap-4 p-5"
+          title="[4] PORT OVERRIDES"
         >
-          <CheckboxRow
-            className="gap-2.5"
-            defaultChecked
-            label="FORWARD SSH AGENT"
+          <PortsTable
+            onAddPortForward={() =>
+              setPortForwards(prev => [...(prev ?? []), {}])
+            }
+            onChangePortForward={(index, updated) =>
+              setPortForwards(prev =>
+                prev?.map((pf, i) => (index === i ? updated : pf)),
+              )
+            }
+            onRemovePortForward={index =>
+              setPortForwards(prev => prev?.filter((_, i) => index !== i))
+            }
+            portForwards={portForwards ?? []}
           />
           <p className="flex items-center text-phosphor-dim">
-            USER ben · PORT AUTO · KEY ~/.lima/_config/user
+            LIMA ALREADY FORWARDS GUEST PORTS TO 127.0.0.1 · THESE RULES
+            OVERRIDE THAT · IGNORE NEEDS PROTO ANY TO CATCH UDP
+          </p>
+        </CrtSection>
+
+        <CrtSection contentClassName="flex flex-col gap-4 p-5" title="[5] SSH">
+          <div className="flex flex-wrap gap-x-8 gap-y-3">
+            <CheckboxRow
+              checked={ssh?.forwardAgent}
+              className="gap-2.5"
+              label="FORWARD SSH AGENT"
+              onCheckedChange={forwardAgent =>
+                setSSH({ ...sshDraft, forwardAgent })
+              }
+            />
+            <CheckboxRow
+              checked={ssh?.loadDotSSHPubKeys}
+              className="gap-2.5"
+              label="LOAD ~/.ssh PUBKEYS"
+              onCheckedChange={loadDotSSHPubKeys =>
+                setSSH({ ...sshDraft, loadDotSSHPubKeys })
+              }
+            />
+          </div>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-x-5 gap-y-5">
+            <LabeledField htmlFor="ssh-port" label="SSH PORT">
+              <Input
+                autoComplete="off"
+                id="ssh-port"
+                onChange={e =>
+                  setSSH(
+                    withValidatedField(
+                      sshDraft,
+                      'localPort',
+                      e.currentTarget.value,
+                      PortNumberSchema,
+                    ),
+                  )
+                }
+                placeholder="auto"
+                spellCheck={false}
+                value={ssh?.localPort?.toString() ?? ''}
+              />
+            </LabeledField>
+            <LabeledField htmlFor="guest-user" label="GUEST USER">
+              <Input
+                autoComplete="off"
+                id="guest-user"
+                onChange={e =>
+                  setUser(
+                    withValidatedField(
+                      userDraft,
+                      'name',
+                      e.currentTarget.value,
+                      UserNameSchema,
+                    ),
+                  )
+                }
+                placeholder="same as host"
+                spellCheck={false}
+                value={user?.name ?? ''}
+              />
+            </LabeledField>
+          </div>
+          <p className="flex items-center text-phosphor-dim">
+            USER {user?.name || 'HOST'} · PORT {ssh?.localPort || 'AUTO'} · KEY
+            ~/.lima/_config/user
           </p>
         </CrtSection>
       </form>

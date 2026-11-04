@@ -1,4 +1,5 @@
 import type { ComponentProps, ReactNode } from 'react';
+import { useId } from 'react';
 import { cn } from '../lib/utils.ts';
 import { Checkbox } from './ui/checkbox.tsx';
 
@@ -12,6 +13,7 @@ export function CheckboxRow({
   hint?: ReactNode;
   label: ReactNode;
 }) {
+  const internalId = useId();
   return (
     <span
       className={cn(
@@ -19,9 +21,9 @@ export function CheckboxRow({
         className,
       )}
     >
-      <Checkbox {...checkbox} />
-      <span>{label}</span>
-      {hint != null && <span className="text-phosphor-dim">{hint}</span>}
+      <Checkbox id={internalId} {...checkbox} />
+      <label htmlFor={internalId}>{label}</label>
+      {hint && <span className="text-phosphor-dim">{hint}</span>}
     </span>
   );
 }

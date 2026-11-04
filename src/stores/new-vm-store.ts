@@ -9,7 +9,7 @@ type NewVMStore = {
 };
 
 const store = new Tubular<NewVMStore>({
-  config: {},
+  config: { ssh: { forwardAgent: true } },
   name: '',
   startAfterCreate: true,
 });

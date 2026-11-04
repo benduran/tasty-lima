@@ -25,15 +25,18 @@ export function Subheader({
     <div className="flex items-end justify-between gap-x-8 gap-y-5">
       <div className="flex flex-col gap-1.5">
         {breadcrumbs && (
-          <div className="text-phosphor-dim">
+          <div className="text-phosphor-dim flex items-center gap-2 uppercase">
             {breadcrumbs.map((b, i) => {
               if (i === breadcrumbs.length - 1) {
                 return <Fragment key={b.url}>{b.title}</Fragment>;
               }
               return (
-                <Link href={b.url} key={b.url}>
-                  {b.title}
-                </Link>
+                <Fragment key={b.url}>
+                  <Link className="underline hover:no-underline" href={b.url}>
+                    {b.title}
+                  </Link>
+                  <span>/</span>
+                </Fragment>
               );
             })}
           </div>
