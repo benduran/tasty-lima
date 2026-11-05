@@ -1,5 +1,10 @@
 import type { ZodType } from 'zod';
-import type { LimaArch, MachineInfo, Nullish } from './types.ts';
+import type {
+  LimaArch,
+  LimaLocatorWithDigest,
+  MachineInfo,
+  Nullish,
+} from './types.ts';
 
 export function isNullOrUndefined(thing: unknown): thing is null | undefined {
   return typeof thing === 'undefined' || thing === undefined || thing === null;
@@ -61,4 +66,19 @@ export function machineInfoArchToLimaArch(
     default:
       return null;
   }
+}
+
+const TEMPLATE_LOCATOR_PREFIX = 'template:';
+
+export function templateLocator(name: string) {
+  return `${TEMPLATE_LOCATOR_PREFIX}${name}`;
+}
+
+export function templateNameFromBase(
+  base: Nullish<LimaLocatorWithDigest[]>,
+): Nullish<string> {
+  const url = base?.[0]?.url;
+  if (!url?.startsWith(TEMPLATE_LOCATOR_PREFIX)) return null;
+
+  return url.slice(TEMPLATE_LOCATOR_PREFIX.length);
 }

@@ -51,3 +51,9 @@ export const MachineInfoSchema = z.object({
   ram: z.int().positive(),
 });
 export type MachineInfo = z.infer<typeof MachineInfoSchema>;
+
+export const LimaTemplateSummarySchema = z.object({
+  experimental: z.boolean(),
+  name: z.string(),
+});
+export type LimaTemplateSummary = z.infer<typeof LimaTemplateSummarySchema>;

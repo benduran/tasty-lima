@@ -5,9 +5,11 @@ import { LabeledField } from '../components/labeled-field.tsx';
 import { MountsTable } from '../components/mounts-table.tsx';
 import { PortsTable } from '../components/ports-table.tsx';
 import { ResourceMeter } from '../components/resource-meter.tsx';
+import { TemplatePicker } from '../components/template-picker.tsx';
 import { Input } from '../components/ui/input.tsx';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
 import { useQueryMachineInfo } from '../hooks/use-query-machine-info.ts';
+import { useQueryPublicTemplates } from '../hooks/use-query-public-templates.ts';
 import { PageLayout } from '../layouts/PageLayout.tsx';
 import { uiRoutes } from '../routes/ui.ts';
 import { PortNumberSchema, UserNameSchema } from '../shared/creator-types.ts';
@@ -24,6 +26,8 @@ import {
 import {
   isNullOrUndefined,
   machineInfoArchToLimaArch,
+  templateLocator,
+  templateNameFromBase,
   withValidatedField,
 } from '../shared/util.ts';
 import { useNewVMStore } from '../stores/new-vm-store.ts';
@@ -32,9 +36,15 @@ import { useNewVMStore } from '../stores/new-vm-store.ts';
 export function NewVmPage() {
   /** queries */
   const { data: machineInfo } = useQueryMachineInfo();
+  const {
+    data: templates,
+    error: templatesError,
+    isPending: templatesPending,
+  } = useQueryPublicTemplates();
 
   /** store */
   const [name, setName] = useNewVMStore('name');
+  const [base, setBase] = useNewVMStore('config.base');
   const [arch, setArch] = useNewVMStore('config.arch');
   const [vmType, setVmType] = useNewVMStore('config.vmType');
   const [mounts, setMounts] = useNewVMStore('config.mounts');
@@ -48,6 +58,7 @@ export function NewVmPage() {
 
   /** memos */
   const currentMachineArch = machineInfoArchToLimaArch(machineInfo?.arch);
+  const selectedTemplate = templateNameFromBase(base);
 
   const sshDraft: LimaSSH = ssh ?? {};
   const userDraft: LimaUser = user ?? {};
@@ -71,6 +82,12 @@ export function NewVmPage() {
 
   /** effects */
   useEffect(() => {
+    if (base?.length) return;
+
+    setBase([{ url: templateLocator('default') }]);
+  }, [base, setBase]);
+
+  useEffect(() => {
     if (arch || !currentMachineArch) return;
 
     setArch(currentMachineArch);
@@ -91,8 +108,18 @@ export function NewVmPage() {
   useEffect(() => {
     setCpus(1);
     setRam(String(1));
-    setMountType('virtiofs');
-  }, [setMountType, setCpus, setRam]);
+    switch (machineInfo?.platform) {
+      case 'darwin':
+        setMountType('virtiofs');
+        break;
+      case 'win32':
+        setMountType('wsl2');
+        break;
+      default:
+        setMountType('9p');
+        break;
+    }
+  }, [machineInfo?.platform, setMountType, setCpus, setRam]);
 
   return (
     <PageLayout
@@ -123,26 +150,16 @@ export function NewVmPage() {
               value={name || ''}
             />
           </LabeledField>
-          {/* <CrtFieldset legend="TEMPLATE">
-            <RadioGroup
-              className="grid grid-cols-[repeat(auto-fit,minmax(min(190px,100%),1fr))] gap-2"
-              defaultValue="ubuntu-lts"
-            >
-              {TEMPLATES.map(tpl => (
-                <CrtOption
-                  className="items-start py-2.5"
-                  key={tpl.id}
-                  sel={tpl.id === 'ubuntu-lts'}
-                >
-                  <RadioGroupItem value={tpl.id} />
-                  <span className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-[22px]">{tpl.id}</span>
-                    <span className="text-phosphor-dim">{tpl.desc}</span>
-                  </span>
-                </CrtOption>
-              ))}
-            </RadioGroup>
-          </CrtFieldset> */}
+          <TemplatePicker
+            error={templatesError}
+            isPending={templatesPending}
+            machineInfo={machineInfo}
+            onSelect={templateName =>
+              setBase([{ url: templateLocator(templateName) }])
+            }
+            selected={selectedTemplate}
+            templates={templates}
+          />
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-x-5 gap-y-5">
             <CrtFieldset legend="ARCH">
               <RadioGroup
@@ -312,9 +329,9 @@ export function NewVmPage() {
             }
             portForwards={portForwards ?? []}
           />
-          <p className="flex items-center text-phosphor-dim">
-            LIMA ALREADY FORWARDS GUEST PORTS TO 127.0.0.1 · THESE RULES
-            OVERRIDE THAT · IGNORE NEEDS PROTO ANY TO CATCH UDP
+          <p className="flex items-center uppercase text-phosphor-dim">
+            LIMA ALREADY FORWARDS GUEST PORTS TO 127.0.0.1 (THESE RULES will
+            OVERRIDE THAT behaviour)
           </p>
         </CrtSection>
 

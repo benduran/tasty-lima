@@ -1,6 +1,6 @@
 import { AppShell } from './layouts/AppShell.tsx';
 import { TastyLimaProviders } from './providers/index.ts';
-import { TastyLimaRouter } from './routes/tasty-lima-router.tsx';
+import { TastyLimaRouter } from './routes/index.ts';
 
 export function App() {
   return (

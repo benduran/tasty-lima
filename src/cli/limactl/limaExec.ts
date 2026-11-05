@@ -1,6 +1,6 @@
 import { execa } from 'execa';
 import { z } from 'zod';
-import type { LimaInstance } from '../../shared/types.ts';
+import type { LimaInstance, LimaTemplateSummary } from '../../shared/types.ts';
 import { LimaInstanceSchema } from '../../shared/types.ts';
 import { isObject } from '../../shared/util.ts';
 import { logger } from '../logger.ts';
@@ -46,4 +46,17 @@ export async function listInstances(): Promise<LimaInstance[]> {
   }
 
   return out;
+}
+
+export async function listTemplates(): Promise<LimaTemplateSummary[]> {
+  const result = await limaExec(['create', '--list-templates']);
+  const names = result
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  return names.map(name => ({
+    experimental: name.startsWith('experimental/'),
+    name,
+  }));
 }

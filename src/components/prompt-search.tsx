@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { cn } from '../lib/utils.ts';
 import { Input } from './ui/input.tsx';
 
@@ -6,7 +7,8 @@ export function PromptSearch({
   htmlFor,
   placeholder,
   prompt,
-}: {
+  ...input
+}: Omit<ComponentProps<typeof Input>, 'id' | 'type'> & {
   className?: string;
   htmlFor: string;
   placeholder?: string;
@@ -26,6 +28,7 @@ export function PromptSearch({
         placeholder={placeholder}
         spellCheck={false}
         type="search"
+        {...input}
       />
     </label>
   );
