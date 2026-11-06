@@ -36,11 +36,8 @@ import { useNewVMStore } from '../stores/new-vm-store.ts';
 export function NewVmPage() {
   /** queries */
   const { data: machineInfo } = useQueryMachineInfo();
-  const {
-    data: templates,
-    error: templatesError,
-    isPending: templatesPending,
-  } = useQueryPublicTemplates();
+  const { data: templates, isPending: templatesPending } =
+    useQueryPublicTemplates();
 
   /** store */
   const [name, setName] = useNewVMStore('name');
@@ -151,7 +148,6 @@ export function NewVmPage() {
             />
           </LabeledField>
           <TemplatePicker
-            error={templatesError}
             isPending={templatesPending}
             machineInfo={machineInfo}
             onSelect={templateName =>

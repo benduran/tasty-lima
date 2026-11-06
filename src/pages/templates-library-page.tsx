@@ -1,7 +1,6 @@
 import { Link } from 'wouter';
 import type { PressItem } from '../components/press-button-group.tsx';
 import { PressButtonGroup } from '../components/press-button-group.tsx';
-import { PromptSearch } from '../components/prompt-search.tsx';
 import { LinkRemoteForm } from '../components/templates-library/link-remote-form.tsx';
 import { TemplateDetailPanel } from '../components/templates-library/template-detail-panel.tsx';
 import type { LibraryGroup } from '../components/templates-library/template-list.tsx';

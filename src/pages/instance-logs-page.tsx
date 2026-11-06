@@ -5,7 +5,6 @@ import type { LogLine } from '../components/instance-logs/log-viewer.tsx';
 import { LogViewer } from '../components/instance-logs/log-viewer.tsx';
 import type { PressItem } from '../components/press-button-group.tsx';
 import { PressButtonGroup } from '../components/press-button-group.tsx';
-import { PromptSearch } from '../components/prompt-search.tsx';
 import { Button } from '../components/ui/button.tsx';
 import { PageLayout } from '../layouts/PageLayout.tsx';
 
