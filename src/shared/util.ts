@@ -82,3 +82,8 @@ export function templateNameFromBase(
 
   return url.slice(TEMPLATE_LOCATOR_PREFIX.length);
 }
+
+export function bytesToGb(bytes: Nullish<number>) {
+  if (!bytes) return 0;
+  return Math.ceil(bytes / 1024 ** 3);
+}

@@ -1,32 +1,64 @@
-import type * as React from 'react';
+import type { ComponentProps } from 'react';
 import { cn } from '../../lib/utils.ts';
 
-function Table({ className, ...props }: React.ComponentProps<'table'>) {
+const ALIGN = {
+  center: 'text-center',
+  left: 'text-left',
+  right: 'text-right',
+} as const;
+
+type TableAlign = keyof typeof ALIGN;
+
+function Table({
+  className,
+  minWidth,
+  style,
+  ...props
+}: ComponentProps<'table'> & {
+  minWidth?: number | string;
+}) {
   return (
     <div
-      className="relative w-full overflow-x-auto border border-border"
+      className="relative w-full overflow-x-auto"
       data-slot="table-container"
     >
       <table
-        className={cn('w-full caption-bottom text-base', className)}
+        className={cn('w-full caption-bottom text-base table-fixed', className)}
         data-slot="table"
         {...props}
+        style={minWidth === undefined ? style : { ...style, minWidth }}
       />
     </div>
   );
 }
 
-function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
+function TableCaption({ className, ...props }: ComponentProps<'caption'>) {
+  return (
+    <caption
+      className={cn(
+        'caption-top flex justify-between gap-3 bg-primary px-3 py-0.5 text-[20px] tracking-[0.08em] text-primary-foreground text-shadow-none',
+        className,
+      )}
+      data-slot="table-caption"
+      {...props}
+    />
+  );
+}
+
+function TableHeader({ className, ...props }: ComponentProps<'thead'>) {
   return (
     <thead
-      className={cn('[&_tr]:border-b [&_tr]:border-b-primary/50', className)}
+      className={cn(
+        'border-b border-phosphor-line [&_tr]:border-b-0 [&_tr:hover]:bg-transparent',
+        className,
+      )}
       data-slot="table-header"
       {...props}
     />
   );
 }
 
-function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
+function TableBody({ className, ...props }: ComponentProps<'tbody'>) {
   return (
     <tbody
       className={cn('[&_tr:last-child]:border-0', className)}
@@ -36,11 +68,11 @@ function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
   );
 }
 
-function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
+function TableFooter({ className, ...props }: ComponentProps<'tfoot'>) {
   return (
     <tfoot
       className={cn(
-        'border-t border-phosphor-line bg-phosphor-faint font-normal [&>tr]:last:border-b-0',
+        'border-t border-phosphor-line bg-phosphor-faint [&>tr]:last:border-b-0',
         className,
       )}
       data-slot="table-footer"
@@ -49,50 +81,58 @@ function TableFooter({ className, ...props }: React.ComponentProps<'tfoot'>) {
   );
 }
 
-function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
+function TableRow({
+  className,
+  selected,
+  ...props
+}: ComponentProps<'tr'> & {
+  selected?: boolean;
+}) {
   return (
     <tr
       className={cn(
-        'border-b border-phosphor-line transition-colors hover:bg-phosphor-faint has-aria-expanded:bg-phosphor-faint data-[state=selected]:bg-phosphor-faint data-[state=selected]:outline data-[state=selected]:outline-1 data-[state=selected]:-outline-offset-1 data-[state=selected]:outline-primary',
+        'border-b border-phosphor-line transition-colors hover:bg-phosphor-faint data-[state=selected]:bg-phosphor-faint data-[state=selected]:outline data-[state=selected]:outline-1 data-[state=selected]:-outline-offset-1 data-[state=selected]:outline-primary',
         className,
       )}
       data-slot="table-row"
+      data-state={selected ? 'selected' : undefined}
       {...props}
     />
   );
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
+function TableHead({
+  align = 'left',
+  className,
+  ...props
+}: ComponentProps<'th'> & { align?: TableAlign }) {
   return (
     <th
       className={cn(
-        'h-10 px-3 text-left align-middle font-normal tracking-[0.06em] whitespace-nowrap bg-primary text-primary-foreground text-shadow-none uppercase [&:has([role=checkbox])]:pr-0',
+        'px-1.5 py-2 text-left font-normal tracking-[0.06em] whitespace-nowrap uppercase text-phosphor-dim first:pl-3 last:pr-3 [&:has([role=checkbox])]:pr-0',
+        ALIGN[align],
         className,
       )}
       data-slot="table-head"
+      scope="col"
       {...props}
     />
   );
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
-  return (
-    <td
-      className={cn('p-2 px-3 align-middle whitespace-nowrap', className)}
-      data-slot="table-cell"
-      {...props}
-    />
-  );
-}
-
-function TableCaption({
+function TableCell({
+  align = 'left',
   className,
   ...props
-}: React.ComponentProps<'caption'>) {
+}: ComponentProps<'td'> & { align?: TableAlign }) {
   return (
-    <caption
-      className={cn('mt-3 text-sm text-phosphor-dim', className)}
-      data-slot="table-caption"
+    <td
+      className={cn(
+        'px-1.5 py-3 text-left align-middle whitespace-nowrap first:pl-3 last:pr-3 [&:has([role=checkbox])]:pr-0',
+        ALIGN[align],
+        className,
+      )}
+      data-slot="table-cell"
       {...props}
     />
   );

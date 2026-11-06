@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { execa } from 'execa';
 import { z } from 'zod';
 import type { LimaInstance, LimaTemplateSummary } from '../../shared/types.ts';
@@ -52,7 +53,7 @@ export async function listTemplates(): Promise<LimaTemplateSummary[]> {
   const result = await limaExec(['create', '--list-templates']);
   const names = result
     .split('\n')
-    .map(line => line.trim())
+    .map(line => path.basename(line.trim()))
     .filter(Boolean);
 
   return names.map(name => ({

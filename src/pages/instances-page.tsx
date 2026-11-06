@@ -12,7 +12,7 @@ export function InstancesPage() {
   return (
     <>
       <PageLayout subheader={{ title: 'Instances' }}>
-        <CrtSection contentClassName="overflow-x-auto" title="INSTANCES">
+        <CrtSection title="INSTANCES">
           <InstancesGrid instances={instances} loading={isPending} />
         </CrtSection>
       </PageLayout>

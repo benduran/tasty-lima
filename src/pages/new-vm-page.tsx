@@ -390,10 +390,6 @@ export function NewVmPage() {
               />
             </LabeledField>
           </div>
-          <p className="flex items-center text-phosphor-dim">
-            USER {user?.name || 'HOST'} · PORT {ssh?.localPort || 'AUTO'} · KEY
-            ~/.lima/_config/user
-          </p>
         </CrtSection>
       </form>
     </PageLayout>
