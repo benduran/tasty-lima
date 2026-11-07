@@ -245,8 +245,8 @@ importers:
         specifier: ^3.7.0
         version: 3.7.0
       totally-tubular:
-        specifier: ^0.6.0
-        version: 0.6.0(react@19.3.1)
+        specifier: ^0.6.1
+        version: 0.6.1(react@19.3.1)
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -2756,8 +2756,8 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
-  totally-tubular@0.6.0:
-    resolution: {integrity: sha512-8tNcnyAxNWER2zNac5RETSXt9eQZVLV8gR5/GlfXuTWqapJrkuYOnYQ2fcyCxCbNF305qH6YeHfk2omyXXwzCA==}
+  totally-tubular@0.6.1:
+    resolution: {integrity: sha512-NAW1aeIlNuOJgr3z1kuWXiYkKkHrJv8EkhGEGIOcQey8OyZ1SEfPmbkVikSBN01MuGrcg568Ce8+eP+B+4HBNg==}
     peerDependencies:
       react: '>=18'
     peerDependenciesMeta:
@@ -5140,7 +5140,7 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  totally-tubular@0.6.0(react@19.3.1):
+  totally-tubular@0.6.1(react@19.3.1):
     optionalDependencies:
       react: 19.3.1
 

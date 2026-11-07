@@ -1,12 +1,14 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { execa } from 'execa';
+import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 import { configToYaml } from '../../shared/lima-yaml.ts';
 import type {
   CreateLimaVM,
   LimaInstance,
   LimaTemplateSummary,
+  LimaYAMLInput,
 } from '../../shared/types.ts';
 import { LimaInstanceSchema } from '../../shared/types.ts';
 import { isObject } from '../../shared/util.ts';
@@ -69,16 +71,54 @@ export async function listTemplates(): Promise<LimaTemplateSummary[]> {
   }));
 }
 
+const ALTERNATE_GUEST_HOME_BASENAME = '{{.User}}.linux';
+
+const FilledHomeAndMountsSchema = z.object({
+  mounts: z.array(z.object({ mountPoint: z.string().nullish() })).nullish(),
+  user: z.object({ home: z.string().nullish() }).nullish(),
+});
+
+async function withNonCollidingGuestHome(
+  configFile: string,
+  config: LimaYAMLInput,
+): Promise<LimaYAMLInput> {
+  if (config.user?.home) return config;
+
+  const filled = FilledHomeAndMountsSchema.parse(
+    parseYaml(await limaExec(['tmpl', 'copy', '--fill', configFile, '-'])),
+  );
+  const guestHome = filled.user?.home;
+  if (!guestHome) return config;
+
+  const collides = filled.mounts?.some(mount => mount.mountPoint === guestHome);
+  if (!collides) return config;
+
+  const home = path.posix.join(
+    path.posix.dirname(guestHome),
+    ALTERNATE_GUEST_HOME_BASENAME,
+  );
+  logger.info('moving the guest home because a mount occupies it', {
+    guestHome,
+    home,
+  });
+  return { ...config, user: { ...config.user, home } };
+}
+
 export async function createInstance(
   opts: CreateLimaVM,
 ): Promise<LimaInstance> {
-  const configYaml = configToYaml(opts.config);
-  const dir = await fs.mkdtemp(path.join(TASTY_LIMA_TEMP, 'create-vm'));
+  await fs.mkdir(TASTY_LIMA_TEMP, { recursive: true });
+  const dir = await fs.mkdtemp(path.join(TASTY_LIMA_TEMP, 'create-vm-'));
   try {
     const configFile = path.join(dir, 'lima.yaml');
+    await fs.writeFile(configFile, configToYaml(opts.config));
+
+    const configYaml = configToYaml(
+      await withNonCollidingGuestHome(configFile, opts.config),
+    );
     await fs.writeFile(configFile, configYaml);
 
-    logger.info(`creating lima instance ${opts.name}`);
+    logger.info(`creating lima instance ${opts.name}`, { configYaml });
     if (opts.startAfterCreate) {
       await limaExec([
         '--tty=false',

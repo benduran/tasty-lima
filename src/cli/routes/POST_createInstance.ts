@@ -3,6 +3,7 @@ import { errorToString } from '../../shared/error-to-string.ts';
 import { apiRoutes } from '../../shared/routes.ts';
 import { CreateLimaVMSchema } from '../../shared/types.ts';
 import { createInstance } from '../limactl/index.ts';
+import { logger } from '../logger.ts';
 import { createApiRouteHandler } from './util.ts';
 
 export const POST_createInstance = createApiRouteHandler(
@@ -18,6 +19,7 @@ export const POST_createInstance = createApiRouteHandler(
     try {
       return ctx.json(await createInstance(validated.data));
     } catch (error) {
+      logger.error(error);
       ctx.status(StatusCodes.INTERNAL_SERVER_ERROR);
       return ctx.text(errorToString(error));
     }

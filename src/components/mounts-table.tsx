@@ -33,24 +33,21 @@ export function MountsTable({
           key={`mount-${i}`}
         >
           <Input
-            aria-label={`Host path ${mount.mountPoint}`}
-            onChange={e =>
-              onChangeMount(i, {
-                ...mount,
-                mountPoint: e.currentTarget.value,
-              })
-            }
-            spellCheck={false}
-            value={mount.mountPoint ?? ''}
-          />
-          <Input
-            aria-label={`Guest path ${mount.location ?? ''}`}
+            aria-label={`Host path ${mount.location}`}
             onChange={e =>
               onChangeMount(i, { ...mount, location: e.currentTarget.value })
             }
-            placeholder="same as host"
             spellCheck={false}
             value={mount.location ?? ''}
+          />
+          <Input
+            aria-label={`Guest path ${mount.mountPoint}`}
+            onChange={e =>
+              onChangeMount(i, { ...mount, mountPoint: e.currentTarget.value })
+            }
+            placeholder="same as host"
+            spellCheck={false}
+            value={mount.mountPoint ?? ''}
           />
           <CheckboxRow
             checked={mount.writable}

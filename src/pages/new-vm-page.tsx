@@ -73,6 +73,7 @@ export function NewVmPage() {
   const queryClient = useQueryClient();
 
   /** store */
+  const resetNewVmStore = useResetNewVMStore();
   const [name, setName] = useNewVMStore('name');
   const [base, setBase] = useNewVMStore('config.base');
   const [arch, setArch] = useNewVMStore('config.arch');
@@ -89,7 +90,6 @@ export function NewVmPage() {
   const [config, setConfig] = useNewVMStore('config');
   const [configMode, setConfigMode] = useNewVMStore('configMode');
   const [rawYaml, setRawYaml] = useNewVMStore('rawYaml');
-  const resetNewVMStore = useResetNewVMStore();
 
   /** memos */
   const currentMachineArch = machineInfoArchToLimaArch(machineInfo?.arch);
@@ -200,7 +200,7 @@ export function NewVmPage() {
             void queryClient.invalidateQueries({
               queryKey: INSTANCE_QUERY_KEY,
             });
-            resetNewVMStore();
+            resetNewVmStore();
             setLocation(uiRoutes.instances());
           },
         },
@@ -213,7 +213,7 @@ export function NewVmPage() {
       name,
       parsed,
       queryClient,
-      resetNewVMStore,
+      resetNewVmStore,
       setLocation,
     ],
   );
@@ -296,6 +296,8 @@ export function NewVmPage() {
   useEffect(() => {
     setCpus(1);
     setRam(String(1));
+    setRam(String(1));
+    setDisk(String(10));
     switch (machineInfo?.platform) {
       case 'darwin':
         setMountType('virtiofs');
@@ -304,10 +306,12 @@ export function NewVmPage() {
         setMountType('wsl2');
         break;
       default:
-        setMountType('9p');
+        setMountType(undefined);
         break;
     }
-  }, [machineInfo?.platform, setMountType, setCpus, setRam]);
+  }, [machineInfo?.platform, setMountType, setCpus, setRam, setDisk]);
+
+  useEffect(() => () => resetNewVmStore(), [resetNewVmStore]);
 
   return (
     <PageLayout
@@ -476,15 +480,26 @@ export function NewVmPage() {
               <CrtFieldset legend="MOUNT TYPE">
                 <RadioGroup
                   onValueChange={newMountType => {
+                    if (newMountType === 'auto') {
+                      setMountType(undefined);
+                      return;
+                    }
+
                     const validated =
                       LimaMountTypeSchema.safeParse(newMountType);
                     if (validated.success) {
                       setMountType(validated.data);
                     }
                   }}
-                  value={mountType}
+                  value={mountType ?? 'auto'}
                 >
                   <CrtOption sel>
+                    <Fragment key="auto">
+                      <RadioGroupItem id="auto" value="auto" />
+                      <label className="hover:cursor-pointer" htmlFor="auto">
+                        auto
+                      </label>
+                    </Fragment>
                     {LimaMountTypeSchema.options.map(mountType => (
                       <Fragment key={mountType}>
                         <RadioGroupItem
