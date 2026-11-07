@@ -1,9 +1,16 @@
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { execa } from 'execa';
 import { z } from 'zod';
-import type { LimaInstance, LimaTemplateSummary } from '../../shared/types.ts';
+import { configToYaml } from '../../shared/lima-yaml.ts';
+import type {
+  CreateLimaVM,
+  LimaInstance,
+  LimaTemplateSummary,
+} from '../../shared/types.ts';
 import { LimaInstanceSchema } from '../../shared/types.ts';
 import { isObject } from '../../shared/util.ts';
+import { TASTY_LIMA_TEMP } from '../constants.ts';
 import { logger } from '../logger.ts';
 import { getLimaBinaryPath } from './ensureLimaCtl.ts';
 
@@ -60,4 +67,44 @@ export async function listTemplates(): Promise<LimaTemplateSummary[]> {
     experimental: name.startsWith('experimental/'),
     name,
   }));
+}
+
+export async function createInstance(
+  opts: CreateLimaVM,
+): Promise<LimaInstance> {
+  const configYaml = configToYaml(opts.config);
+  const dir = await fs.mkdtemp(path.join(TASTY_LIMA_TEMP, 'create-vm'));
+  try {
+    const configFile = path.join(dir, 'lima.yaml');
+    await fs.writeFile(configFile, configYaml);
+
+    logger.info(`creating lima instance ${opts.name}`);
+    if (opts.startAfterCreate) {
+      await limaExec([
+        '--tty=false',
+        'start',
+        configFile,
+        `--name=${opts.name}`,
+      ]);
+    } else {
+      await limaExec([
+        '--tty=false',
+        'create',
+        configFile,
+        `--name=${opts.name}`,
+      ]);
+    }
+
+    const created = (await listInstances()).find(
+      instance => instance.name === opts.name,
+    );
+    if (!created) {
+      throw new Error(
+        `limactl reported success, but the instance ${opts.name} is not in its output`,
+      );
+    }
+    return created;
+  } finally {
+    await fs.rm(dir, { force: true, recursive: true });
+  }
 }

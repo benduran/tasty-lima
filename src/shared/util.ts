@@ -83,7 +83,14 @@ export function templateNameFromBase(
   return url.slice(TEMPLATE_LOCATOR_PREFIX.length);
 }
 
-export function bytesToGb(bytes: Nullish<number>) {
+export function bytesToGb(bytes: Nullish<number | string>) {
   if (!bytes) return 0;
-  return Math.ceil(bytes / 1024 ** 3);
+  const num = typeof bytes === 'string' ? Number.parseInt(bytes, 10) : bytes;
+  return Math.ceil(num / 1024 ** 3);
+}
+
+export function bareNumberStrToGiBStr(value: string | undefined) {
+  return typeof value === 'string' && /^\d+$/.test(value)
+    ? `${value}GiB`
+    : value;
 }
