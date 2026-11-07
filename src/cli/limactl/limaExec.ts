@@ -15,6 +15,15 @@ import { isObject } from '../../shared/util.ts';
 import { TASTY_LIMA_TEMP } from '../constants.ts';
 import { logger } from '../logger.ts';
 import { getLimaBinaryPath } from './ensureLimaCtl.ts';
+import { getQemuPathDirs } from './ensureQemuLinux.ts';
+
+function limaChildEnv(): NodeJS.ProcessEnv {
+  const qemuPathDirs = getQemuPathDirs();
+  if (qemuPathDirs.length === 0) return {};
+  return {
+    PATH: [...qemuPathDirs, process.env.PATH ?? ''].join(path.delimiter),
+  };
+}
 
 async function limaExec(args: string[]) {
   const binPath = getLimaBinaryPath();
@@ -23,7 +32,10 @@ async function limaExec(args: string[]) {
       `unable execute limactl because no limactl bin path was configured. this is a bug 🐛`,
     );
   }
-  const result = await execa(binPath, args, { stdio: 'pipe' });
+  const result = await execa(binPath, args, {
+    env: limaChildEnv(),
+    stdio: 'pipe',
+  });
   if (result.exitCode && result.exitCode !== 0) {
     throw new Error(
       `limactl ${args.join(' ')} exited with code ${result.exitCode}: ${result.stderr}`,

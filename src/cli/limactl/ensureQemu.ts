@@ -7,6 +7,7 @@ import commandExists from 'command-exists';
 import { $ } from 'execa';
 import { TASTY_LIMA_CACHE } from '../constants.ts';
 import { logger } from '../logger.ts';
+import { ensureQemuLinux } from './ensureQemuLinux.ts';
 import { fileExists } from './util.ts';
 
 const qemuBinaryFileName = 'qemu-system-x86_64.exe';
@@ -17,10 +18,6 @@ const qemuBinaryFileName = 'qemu-system-x86_64.exe';
 // a matching `.sha512` (the same pair Chocolatey's qemu package consumes).
 const QEMU_WINDOWS_INDEX_URL = 'https://qemu.weilnetz.de/w64/' as const;
 
-// Default target dirs of the NSIS installer (chocolatey installs here too).
-// These are Windows-only paths, so they're built with `path.win32` rather
-// than the platform-native `path.join` — otherwise a macOS/Linux dev box
-// would splice `/` separators into a `C:\Program Files\...` prefix.
 function qemuWindowsInstallDirs(): string[] {
   return [
     path.win32.join('C:', 'Program Files', 'qemu'),
@@ -35,7 +32,6 @@ type QemuWindowsBuild = {
 };
 
 async function fetchWithLongTimeout(url: string): Promise<Response> {
-  // the installer is ~197 MiB; give slow connections room to finish
   const response = await fetch(url, {
     headers: { 'User-Agent': 'tasty-lima' },
     signal: AbortSignal.timeout(15 * 60_000),
@@ -161,6 +157,10 @@ function prependToPath(dir: string): void {
  * Returns the QEMU dir if tasty-lima had to discover/install it onto PATH.
  */
 export async function ensureQemu(): Promise<string | undefined> {
+  if (os.platform() === 'linux') {
+    await ensureQemuLinux();
+    return undefined;
+  }
   if (os.platform() !== 'win32') {
     // lima ships native hypervisor drivers elsewhere (macOS: apple vz / qemu
     // from the distro), so nothing to do.
