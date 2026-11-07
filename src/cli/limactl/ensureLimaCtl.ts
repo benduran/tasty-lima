@@ -7,6 +7,7 @@ import commandExists from 'command-exists';
 import { $ } from 'execa';
 import { z } from 'zod';
 import { LIMA_VERSION } from '../../shared/constants.ts';
+import { errorToString } from '../../shared/error-to-string.ts';
 import { TASTY_LIMA_CACHE } from '../constants.ts';
 import { logger } from '../logger.ts';
 import { ensureQemu } from './ensureQemu.ts';
@@ -242,6 +243,27 @@ async function extractArchive(
   })`powershell.exe -NoProfile -NonInteractive -Command ${`Expand-Archive -LiteralPath '${zip}' -DestinationPath '.' -Force`}`;
 }
 
+async function cleanupOldLimaVersions() {
+  const dir = path.dirname(limaInstallDir(LIMA_VERSION));
+  for (const folderOrFile of await fs.readdir(dir)) {
+    // don't blast away the version we actually want if we already have it
+    if (folderOrFile.endsWith(LIMA_VERSION)) continue;
+
+    const fullPath = path.join(dir, folderOrFile);
+    try {
+      logger.info(`checking if we need to cleanup ${fullPath}`);
+      const stat = await fs.stat(fullPath, { throwIfNoEntry: false });
+      if (!stat?.isDirectory()) {
+        throw new Error(`${fullPath} is not a folder`);
+      }
+      logger.info(`removing old lima versions at ${fullPath}`);
+      await fs.rm(fullPath, { force: true, recursive: true });
+    } catch (error) {
+      logger.warn(`failed to cleanup ${fullPath}: ${errorToString(error)}`);
+    }
+  }
+}
+
 async function downloadLimaCtl(): Promise<string> {
   const installDir = limaInstallDir(LIMA_VERSION);
   const binary = limaBinaryPath(installDir);
@@ -340,5 +362,6 @@ export async function ensureLimaCtl(): Promise<string> {
       { command: binaryFileName },
     );
   }
+  await cleanupOldLimaVersions();
   return await downloadLimaCtl();
 }

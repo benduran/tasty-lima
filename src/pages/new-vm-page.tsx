@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo } from 'react';
+import { useLocation } from 'wouter';
 import { CheckboxRow } from '../components/checkbox-row.tsx';
 import { CrtFieldset, CrtOption, CrtSection } from '../components/crt.tsx';
 import { LabeledField } from '../components/labeled-field.tsx';
@@ -6,6 +7,7 @@ import { MountsTable } from '../components/mounts-table.tsx';
 import { PortsTable } from '../components/ports-table.tsx';
 import { ResourceMeter } from '../components/resource-meter.tsx';
 import { TemplatePicker } from '../components/template-picker.tsx';
+import { Button } from '../components/ui/button.tsx';
 import { Input } from '../components/ui/input.tsx';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group.tsx';
 import { useQueryMachineInfo } from '../hooks/use-query-machine-info.ts';
@@ -38,6 +40,9 @@ export function NewVmPage() {
   const { data: machineInfo } = useQueryMachineInfo();
   const { data: templates, isPending: templatesPending } =
     useQueryPublicTemplates();
+
+  /** routing */
+  const [, setLocation] = useLocation();
 
   /** store */
   const [name, setName] = useNewVMStore('name');
@@ -325,10 +330,15 @@ export function NewVmPage() {
             }
             portForwards={portForwards ?? []}
           />
-          <p className="flex items-center uppercase text-phosphor-dim">
-            LIMA ALREADY FORWARDS GUEST PORTS TO 127.0.0.1 (THESE RULES will
-            OVERRIDE THAT behaviour)
-          </p>
+          <div className="text-phosphor-dim uppercase">
+            <p>
+              Lima already forwards guest ports to{' '}
+              <span className="font-mono">127.0.0.1</span>.
+            </p>
+            <p>
+              (Changes you make to this section will override that behaviour)
+            </p>
+          </div>
         </CrtSection>
 
         <CrtSection contentClassName="flex flex-col gap-4 p-5" title="[5] SSH">
@@ -391,6 +401,16 @@ export function NewVmPage() {
             </LabeledField>
           </div>
         </CrtSection>
+        <div className="flex items-center justify-end gap-4">
+          <Button
+            onClick={() => setLocation(uiRoutes.instances())}
+            variant="outline"
+          >
+            Cancel
+          </Button>
+          <Button>Create</Button>
+          <Button>Create and boot now</Button>
+        </div>
       </form>
     </PageLayout>
   );

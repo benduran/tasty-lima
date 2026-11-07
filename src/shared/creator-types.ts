@@ -48,3 +48,10 @@ export const LimaYAMLInputSchema = LimaYAMLSchema.extend({
   portForwards: z.array(PortForwardInputSchema).optional(),
 });
 export type LimaYAMLInput = z.infer<typeof LimaYAMLInputSchema>;
+
+export const CreateLimaVMSchema = z.object({
+  config: LimaYAMLInputSchema,
+  name: z.string().nonempty().nonoptional(),
+  startAfterCreate: z.boolean(),
+});
+export type CreateLimaVM = z.infer<typeof CreateLimaVMSchema>;

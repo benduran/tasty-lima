@@ -1,14 +1,8 @@
 import { Tubular } from 'totally-tubular';
 import { createUseTubular, createUseTubularReset } from 'totally-tubular/react';
-import type { LimaYAMLInput } from '../shared/types.ts';
+import type { CreateLimaVM } from '../shared/types.ts';
 
-type NewVMStore = {
-  config: LimaYAMLInput;
-  name: string;
-  startAfterCreate: boolean;
-};
-
-const store = new Tubular<NewVMStore>({
+const store = new Tubular<CreateLimaVM>({
   config: { ssh: { forwardAgent: true } },
   name: '',
   startAfterCreate: true,
