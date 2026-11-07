@@ -1,5 +1,6 @@
 allowBuilds:
   esbuild: true
+savePrefix: ""
 minimumReleaseAge: 7200
 minimumReleaseAgeExclude:
   - "@better-builds/nodec"

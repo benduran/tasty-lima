@@ -167,67 +167,67 @@ importers:
   .:
     dependencies:
       '@base-ui/react':
-        specifier: ^1.9.0
+        specifier: 1.9.0
         version: 1.9.0(@date-fns/tz@1.5.0)(@types/react@19.3.0)(date-fns@4.4.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@fontsource-variable/geist':
-        specifier: ^5.3.0
+        specifier: 5.3.0
         version: 5.3.0
       '@fontsource/vt323':
-        specifier: ^5.3.0
+        specifier: 5.3.0
         version: 5.3.0
       '@hono/node-server':
-        specifier: ^2.1.5
+        specifier: 2.1.5
         version: 2.1.5(hono@4.13.14)
       '@shadcn/react':
-        specifier: ^0.3.1
+        specifier: 0.3.1
         version: 0.3.1(@types/react@19.3.0)(react@19.3.1)
       '@tanstack/react-query':
         specifier: 5.105.0
         version: 5.105.0(@types/react@19.3.0)(react@19.3.1)
       check-disk-space:
-        specifier: ^4.0.0
+        specifier: 4.0.0
         version: 4.0.0
       class-variance-authority:
-        specifier: ^0.7.1
+        specifier: 0.7.1
         version: 0.7.1
       clsx:
-        specifier: ^2.1.1
+        specifier: 2.1.1
         version: 2.1.1
       cmdk:
-        specifier: ^1.1.1
+        specifier: 1.1.1
         version: 1.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       command-exists:
-        specifier: ^1.2.9
+        specifier: 1.2.9
         version: 1.2.9
       date-fns:
-        specifier: ^4.4.0
+        specifier: 4.4.0
         version: 4.4.0
       embla-carousel-react:
-        specifier: ^8.6.0
+        specifier: 8.6.0
         version: 8.6.0(react@19.3.1)
       execa:
-        specifier: ^10.2.1
+        specifier: 10.2.1
         version: 10.2.1
       hono:
-        specifier: ^4.13.14
+        specifier: 4.13.14
         version: 4.13.14
       http-status-codes:
-        specifier: ^2.3.0
+        specifier: 2.3.0
         version: 2.3.0
       input-otp:
-        specifier: ^1.5.0
+        specifier: 1.5.0
         version: 1.5.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       lucide-react:
         specifier: 1.66.0
         version: 1.66.0(@types/react@19.3.0)(react@19.3.1)
       react:
-        specifier: ^19.3.1
+        specifier: 19.3.1
         version: 19.3.1
       react-day-picker:
-        specifier: ^10.0.2
+        specifier: 10.0.2
         version: 10.0.2(@types/react@19.3.0)(react@19.3.1)
       react-dom:
-        specifier: ^19.3.1
+        specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       react-resizable-panels:
         specifier: 4.16.0
@@ -239,77 +239,77 @@ importers:
         specifier: 4.23.0
         version: 4.23.0
       shiki:
-        specifier: ^4.5.0
+        specifier: 4.5.0
         version: 4.5.0
       tailwind-merge:
-        specifier: ^3.7.0
+        specifier: 3.7.0
         version: 3.7.0
       totally-tubular:
-        specifier: ^0.6.1
+        specifier: 0.6.1
         version: 0.6.1(react@19.3.1)
       tw-animate-css:
-        specifier: ^1.4.0
+        specifier: 1.4.0
         version: 1.4.0
       winston:
-        specifier: ^3.19.0
+        specifier: 3.19.0
         version: 3.19.0
       wouter:
-        specifier: ^3.13.0
+        specifier: 3.13.0
         version: 3.13.0(react@19.3.1)
       yaml:
-        specifier: ^2.9.1
+        specifier: 2.9.1
         version: 2.9.1
       yargs:
-        specifier: ^18.2.0
+        specifier: 18.2.0
         version: 18.2.0
       zod:
-        specifier: ^4.6.7
+        specifier: 4.6.7
         version: 4.6.7
     devDependencies:
       '@better-builds/nodec':
-        specifier: ^2.1.1
+        specifier: 2.1.1
         version: 2.1.1
       '@biomejs/biome':
         specifier: 2.6.4
         version: 2.6.4
       '@cprussin/tsconfig':
-        specifier: ^5.0.0
+        specifier: 5.0.0
         version: 5.0.0(typescript@7.0.2)
       '@tailwindcss/vite':
-        specifier: ^4.3.3
+        specifier: 4.3.3
         version: 4.3.3(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       '@types/command-exists':
-        specifier: ^1.2.3
+        specifier: 1.2.3
         version: 1.2.3
       '@types/node':
-        specifier: ^26.6.6
+        specifier: 26.6.6
         version: 26.6.6
       '@types/react':
-        specifier: ^19.3.0
+        specifier: 19.3.0
         version: 19.3.0
       '@types/react-dom':
-        specifier: ^19.3.0
+        specifier: 19.3.0
         version: 19.3.0(@types/react@19.3.0)
       '@types/yargs':
-        specifier: ^17.0.35
+        specifier: 17.0.35
         version: 17.0.35
       '@vitejs/plugin-react':
-        specifier: ^6.1.2
+        specifier: 6.1.2
         version: 6.1.2(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       npm-check-updates:
-        specifier: ^23.1.1
+        specifier: 23.1.1
         version: 23.1.1
       tailwindcss:
-        specifier: ^4.3.3
+        specifier: 4.3.3
         version: 4.3.3
       tsx:
-        specifier: ^4.23.15
+        specifier: 4.23.15
         version: 4.23.15
       turbo:
-        specifier: ^2.11.10
+        specifier: 2.11.10
         version: 2.11.10
       typescript:
-        specifier: ^7.0.2
+        specifier: 7.0.2
         version: 7.0.2
       vite:
         specifier: 8.3.5
