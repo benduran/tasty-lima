@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { jsonFetch } from '../lib/fetch.ts';
+import { LimaTemplateSummarySchema } from '../shared/codecs.ts';
 import { apiRoutes } from '../shared/routes.ts';
-import { LimaTemplateSummarySchema } from '../shared/types.ts';
 
 export function useQueryPublicTemplates() {
   return useQuery({

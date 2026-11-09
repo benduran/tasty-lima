@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import {
   BOOT_SCRIPT_EXAMPLE,
   SYSTEM_SCRIPT_EXAMPLE,
-} from '../shared/lima-yaml.ts';
+} from '../shared/codecs.ts';
 import type { LimaProvision } from '../shared/types.ts';
 import { Button } from './ui/button.tsx';
 import { Textarea } from './ui/textarea.tsx';

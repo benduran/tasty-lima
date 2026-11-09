@@ -1,9 +1,6 @@
 import { useMemo, useState } from 'react';
-import type {
-  LimaTemplateSummary,
-  MachineInfo,
-  Nullish,
-} from '../shared/types.ts';
+import type { LimaTemplateSummary } from '../shared/codecs.ts';
+import type { MachineInfo, Nullish } from '../shared/types.ts';
 import { isNullOrUndefined } from '../shared/util.ts';
 import type { AutocompleteItem } from './autocomplete.tsx';
 import { Autocomplete } from './autocomplete.tsx';
@@ -92,6 +89,7 @@ export function TemplatePicker({
     >
       <div className="mb-3 flex flex-wrap items-center gap-x-6 gap-y-3">
         <Autocomplete
+          className="max-w-105"
           items={options}
           loading={isPending}
           onChange={s => onSelect(s?.value || '')}

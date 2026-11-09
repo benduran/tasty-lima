@@ -3,11 +3,11 @@ import path from 'node:path';
 import { execa } from 'execa';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
-import { configToYaml } from '../../shared/lima-yaml.ts';
+import type { LimaTemplateSummary } from '../../shared/codecs.ts';
+import { LimaYAMLInputCodec } from '../../shared/codecs.ts';
 import type {
   CreateLimaVM,
   LimaInstance,
-  LimaTemplateSummary,
   LimaYAMLInput,
 } from '../../shared/types.ts';
 import { LimaInstanceSchema } from '../../shared/types.ts';
@@ -123,9 +123,9 @@ export async function createInstance(
   const dir = await fs.mkdtemp(path.join(TASTY_LIMA_TEMP, 'create-vm-'));
   try {
     const configFile = path.join(dir, 'lima.yaml');
-    await fs.writeFile(configFile, configToYaml(opts.config));
+    await fs.writeFile(configFile, LimaYAMLInputCodec.encode(opts.config));
 
-    const configYaml = configToYaml(
+    const configYaml = LimaYAMLInputCodec.encode(
       await withNonCollidingGuestHome(configFile, opts.config),
     );
     await fs.writeFile(configFile, configYaml);

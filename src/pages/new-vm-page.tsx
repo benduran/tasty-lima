@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { SubmitEvent } from 'react';
 import { Fragment, useCallback, useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
+import { z } from 'zod';
 import { CheckboxRow } from '../components/checkbox-row.tsx';
 import {
   CrtFieldset,
@@ -29,13 +30,9 @@ import { useQueryMachineInfo } from '../hooks/use-query-machine-info.ts';
 import { useQueryPublicTemplates } from '../hooks/use-query-public-templates.ts';
 import { PageLayout } from '../layouts/PageLayout.tsx';
 import { uiRoutes } from '../routes/ui.ts';
+import { LimaYAMLInputCodec } from '../shared/codecs.ts';
 import { PortNumberSchema, UserNameSchema } from '../shared/creator-types.ts';
 import { errorToString } from '../shared/error-to-string.ts';
-import {
-  configFromYamlParsed,
-  configToYaml,
-  parseLimaYamlInput,
-} from '../shared/lima-yaml.ts';
 import type {
   LimaSSH,
   LimaUser,
@@ -96,7 +93,10 @@ export function NewVmPage() {
   const selectedTemplate = templateNameFromBase(base);
 
   const parsed = useMemo(
-    () => (configMode === 'yaml' ? parseLimaYamlInput(rawYaml ?? '') : null),
+    () =>
+      configMode === 'yaml'
+        ? LimaYAMLInputCodec.safeDecode(rawYaml || '')
+        : null,
     [configMode, rawYaml],
   );
 
@@ -104,7 +104,7 @@ export function NewVmPage() {
   const userDraft: LimaUser = user ?? {};
 
   const canCreate = useMemo(
-    () => Boolean(name?.trim()) && !isCreating && (!parsed || parsed.ok),
+    () => Boolean(name?.trim()) && !isCreating && (!parsed || parsed.success),
     [isCreating, name, parsed],
   );
 
@@ -150,7 +150,7 @@ export function NewVmPage() {
 
       if (next === 'yaml') {
         try {
-          setRawYaml(configToYaml(buildSubmitConfig()));
+          setRawYaml(LimaYAMLInputCodec.encode(buildSubmitConfig()));
         } catch (error) {
           toast.add({
             description: errorToString(error),
@@ -163,10 +163,10 @@ export function NewVmPage() {
         return;
       }
 
-      const result = parseLimaYamlInput(rawYaml ?? '');
-      if (!result.ok) return;
+      const result = LimaYAMLInputCodec.safeDecode(rawYaml || '');
+      if (!result.success) return;
 
-      setConfig(configFromYamlParsed(result.config));
+      setConfig(result.data);
       setConfigMode('form');
     },
     [
@@ -183,8 +183,8 @@ export function NewVmPage() {
     (start: boolean) => {
       let submission: LimaYAMLInput;
       if (configMode === 'yaml') {
-        if (!parsed?.ok) return;
-        submission = parsed.config;
+        if (!parsed?.success) return;
+        submission = parsed.data;
       } else {
         submission = buildSubmitConfig();
       }
@@ -664,10 +664,10 @@ export function NewVmPage() {
 
             <CrtSection
               contentClassName="flex flex-col gap-3 p-5"
-              label={parsed?.ok ? 'OK' : 'ERR'}
+              label={parsed?.success ? 'OK' : 'ERR'}
               title="VALIDATE"
             >
-              {parsed?.ok ? (
+              {parsed?.success ? (
                 <p role="status">
                   <CrtKey>OK</CrtKey> conforms to lima {LIMA_TYPES_VERSION}
                 </p>
@@ -676,7 +676,7 @@ export function NewVmPage() {
                   className="text-destructive whitespace-pre-wrap"
                   role="status"
                 >
-                  {parsed?.error}
+                  {parsed && !parsed.success && z.prettifyError(parsed.error)}
                 </p>
               )}
             </CrtSection>
