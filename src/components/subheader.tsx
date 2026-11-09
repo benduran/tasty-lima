@@ -22,7 +22,7 @@ export function Subheader({
   title,
 }: SubheaderProps) {
   return (
-    <div className="flex items-end justify-between gap-x-8 gap-y-5">
+    <div className="flex items-end justify-between gap-x-8 gap-y-5 shrink-0">
       <div className="flex flex-col gap-1.5">
         {breadcrumbs && (
           <div className="text-phosphor-dim flex items-center gap-2 uppercase">

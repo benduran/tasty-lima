@@ -10,7 +10,7 @@ type AppFooterProps = {
 
 export function AppFooter({ keys, note }: AppFooterProps) {
   return (
-    <footer className="flex items-center justify-between gap-x-5 gap-y-1.5 border-t-[3px] border-double border-phosphor-dim px-6 py-2.5">
+    <footer className="flex items-center justify-between gap-x-5 gap-y-1.5 border-t-[3px] border-double border-phosphor-dim px-6 py-2.5 shrink-0 text-xs">
       <span className="inline-flex gap-1">
         {keys?.map(([key, action]) => (
           <span key={key}>

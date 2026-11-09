@@ -1,3 +1,4 @@
+import { kebabCase } from 'change-case';
 import { z } from 'zod';
 import { LimaPortForwardSchema, LimaYAMLSchema } from './limactl-types.gen.ts';
 
@@ -51,7 +52,13 @@ export type LimaYAMLInput = z.infer<typeof LimaYAMLInputSchema>;
 
 export const CreateLimaVMSchema = z.object({
   config: LimaYAMLInputSchema,
-  name: z.string().nonempty().nonoptional(),
+  name: z.string().refine(
+    val => {
+      const changed = kebabCase(val);
+      return changed === val;
+    },
+    { error: 'instance name must be in kebab case e.g. "my-ubuntu-vm"' },
+  ),
   startAfterCreate: z.boolean(),
 });
 export type CreateLimaVM = z.infer<typeof CreateLimaVMSchema>;

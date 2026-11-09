@@ -93,6 +93,7 @@ export function TemplatePicker({
           items={options}
           loading={isPending}
           onChange={s => onSelect(s?.value || '')}
+          selectAllOnFocus
           value={selectedOpt}
         />
         <CheckboxRow

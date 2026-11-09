@@ -38,7 +38,7 @@ export function AppHeader() {
     useQueryMachineInfo();
 
   return (
-    <header className="flex flex-wrap items-center gap-x-8 gap-y-3 border-b-[3px] border-double border-phosphor-dim px-6 py-3">
+    <header className="flex flex-wrap items-center gap-x-8 gap-y-3 border-b-[3px] border-double border-phosphor-dim px-6 py-3 shrink-0">
       <Link
         className="text-[40px] leading-none tracking-[0.06em] no-underline"
         href="/"

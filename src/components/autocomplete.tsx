@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { cn } from '../lib/index.ts';
 import type { Nullish } from '../shared/types.ts';
 import { isNullOrUndefined } from '../shared/util.ts';
@@ -32,6 +32,7 @@ type BaseAutocompleteProps<T, M extends object> = {
   items: AutocompleteItem<T, M>[];
   loading?: boolean;
   placeholder?: string;
+  selectAllOnFocus?: boolean;
 };
 
 type AutocompleteProps<T, M extends object> = BaseAutocompleteProps<T, M> &
@@ -61,12 +62,19 @@ export function Autocomplete<T, M extends object>(
 
   /** refs */
   const anchorRef = useComboboxAnchor();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   /** helpers */
   const itemToString =
     props.itemToStringLabel ??
     ((item: AutocompleteItem<T, M>) =>
       typeof item.label === 'string' ? item.label : String(item.value));
+
+  /** callbacks */
+  const handleInputFocus = useCallback(() => {
+    if (!props.selectAllOnFocus) return;
+    inputRef.current?.select();
+  }, [props.selectAllOnFocus]);
 
   return (
     <div className={cn('w-full', props.className)}>
@@ -108,7 +116,9 @@ export function Autocomplete<T, M extends object>(
         >
           {!props.multiple && (
             <ComboboxInput
+              onFocus={handleInputFocus}
               placeholder={props.placeholder ?? 'Type something...'}
+              ref={inputRef}
             />
           )}
           {props.multiple && (

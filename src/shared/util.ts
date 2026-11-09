@@ -94,3 +94,45 @@ export function bareNumberStrToGiBStr(value: string | undefined) {
     ? `${value}GiB`
     : value;
 }
+
+/** go-units-style unit suffixes: bare = bytes, KB/MB/... decimal, KiB/MiB/... binary */
+const BYTES_PER_UNIT: Record<string, number> = {
+  b: 1,
+  g: 1024 ** 3,
+  gb: 1_000_000_000,
+  gib: 1024 ** 3,
+  k: 1024,
+  kb: 1000,
+  kib: 1024,
+  m: 1024 ** 2,
+  mb: 1_000_000,
+  mib: 1024 ** 2,
+  t: 1024 ** 4,
+  tb: 1_000_000_000_000,
+  tib: 1024 ** 4,
+};
+
+/** Parses a Lima/go-units byte-size string ("8GiB", "512M", "1.5GB") to whole GiB. */
+export function GiBStringToBareNumber(gibStr: Nullish<string>) {
+  if (isNullOrUndefined(gibStr)) return gibStr;
+
+  const match = /^([\d.]+)\s*([a-zA-Z]*)$/.exec(gibStr.trim());
+  if (!match) return null;
+
+  const magnitude = Number.parseFloat(match[1] ?? '');
+  const unitBytes =
+    match[2] === undefined ? undefined : BYTES_PER_UNIT[match[2].toLowerCase()];
+  if (!Number.isFinite(magnitude) || unitBytes === undefined) return null;
+
+  return Math.ceil((magnitude * unitBytes) / 1024 ** 3);
+}
+
+/**
+ * Bare-number-string twin of GiBStringToBareNumber, for form stores that hold
+ * "10" instead of "10GiB". Unrecognized strings pass through unchanged so the
+ * error stays visible instead of silently becoming NaN.
+ */
+export function GiBStringToBareNumberStr(value: Nullish<string>) {
+  if (isNullOrUndefined(value)) return undefined;
+  return String(GiBStringToBareNumber(value) ?? value);
+}

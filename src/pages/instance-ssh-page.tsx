@@ -1,4 +1,4 @@
-import { AppFooter } from '../components/app-footers.tsx';
+import { AppFooter } from '../components/app-footer.tsx';
 import { CheckboxRow } from '../components/checkbox-row.tsx';
 import { CommandBlock } from '../components/command-preview.tsx';
 import { CrtFieldset, CrtOption, CrtSection } from '../components/crt.tsx';
