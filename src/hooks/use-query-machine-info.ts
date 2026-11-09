@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { jsonFetch } from '../lib/fetch.ts';
-import { apiRoutes } from '../shared/routes.ts';
 import { MachineInfoSchema } from '../shared/types.ts';
+import { websocketFetch } from '../shared/websocket-fetch.ts';
 
 export function useQueryMachineInfo() {
   return useQuery({
     queryFn: async () =>
-      await jsonFetch({
+      await websocketFetch({
+        body: { sender: 'client', type: 'request-query-machine-info' },
         schema: MachineInfoSchema,
-        url: apiRoutes.machineInfo(),
       }),
     queryKey: ['useQueryMachineInfo'] as const,
   });

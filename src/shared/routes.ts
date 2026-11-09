@@ -4,6 +4,7 @@ const localLimaTemplates = () => `${base()}/templates/local`;
 const publicLimaTemplates = () => `${base()}/templates/public`;
 const machineInfo = () => `${base()}/machine-info` as const;
 const createInstance = () => `${instances()}/create`;
+const websocket = () => `${base()}/ws/connect` as const;
 
 export const apiRoutes = {
   createInstance,
@@ -11,4 +12,5 @@ export const apiRoutes = {
   localLimaTemplates,
   machineInfo,
   publicLimaTemplates,
+  websocket,
 };

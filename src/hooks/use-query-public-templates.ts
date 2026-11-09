@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { jsonFetch } from '../lib/fetch.ts';
 import { LimaTemplateSummarySchema } from '../shared/codecs.ts';
-import { apiRoutes } from '../shared/routes.ts';
+import { websocketFetch } from '../shared/websocket-fetch.ts';
 
 export function useQueryPublicTemplates() {
   return useQuery({
     queryFn: async () =>
-      jsonFetch({
+      await websocketFetch({
+        body: { sender: 'client', type: 'request-query-public-templates' },
         schema: LimaTemplateSummarySchema.array(),
-        url: apiRoutes.publicLimaTemplates(),
       }),
     queryKey: ['useQueryPublicTemplates'] as const,
     staleTime: Number.POSITIVE_INFINITY,

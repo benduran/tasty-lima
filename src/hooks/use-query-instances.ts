@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { jsonFetch } from '../lib/fetch.ts';
-import { apiRoutes } from '../shared/routes.ts';
 import { LimaInstanceSchema } from '../shared/types.ts';
+import { websocketFetch } from '../shared/websocket-fetch.ts';
 
 export function useQueryInstances() {
   return useQuery({
     queryFn: async () =>
-      jsonFetch({
+      await websocketFetch({
+        body: { sender: 'client', type: 'request-query-instances' },
         schema: LimaInstanceSchema.array(),
-        url: apiRoutes.instances(),
       }),
     queryKey: ['useQueryInstances'] as const,
   });

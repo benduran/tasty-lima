@@ -1,11 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
-import { z } from 'zod';
 import { toast } from '../components/ui/toast.tsx';
-import { jsonFetch } from '../lib/index.ts';
 import { errorToString } from '../shared/error-to-string.ts';
-import { apiRoutes } from '../shared/routes.ts';
 import type { CreateLimaVM } from '../shared/types.ts';
-import { CreateLimaVMSchema } from '../shared/types.ts';
+import { CreateLimaVMSchema, LimaInstanceSchema } from '../shared/types.ts';
+import { websocketFetch } from '../shared/websocket-fetch.ts';
 
 const MUTATION_KEY = ['useCreateInstance'] as const;
 
@@ -13,11 +11,13 @@ export function useCreateInstance() {
   return useMutation({
     mutationFn: async (opts: CreateLimaVM) => {
       const validated = CreateLimaVMSchema.parse(opts);
-      return await jsonFetch({
-        body: JSON.stringify(validated),
-        method: 'POST',
-        schema: z.any(),
-        url: apiRoutes.createInstance(),
+      return await websocketFetch({
+        body: {
+          createLimaVM: validated,
+          sender: 'client',
+          type: 'request-create-instance',
+        },
+        schema: LimaInstanceSchema,
       });
     },
     mutationKey: MUTATION_KEY,
