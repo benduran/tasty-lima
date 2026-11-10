@@ -21,9 +21,12 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
     const { requestId } = parsed;
     try {
       switch (parsed.type) {
-        case 'heartbeat':
-          // no-op, client is connected
-          break;
+        case 'request-heartbeat':
+          return send({
+            requestId,
+            sender: 'server',
+            type: 'response-heartbeat',
+          });
         case 'request-create-instance':
           return send({
             data: await createInstance(parsed.createLimaVM),

@@ -1,5 +1,7 @@
+import Sockette from 'sockette';
+import { v4 as uuid } from 'uuid';
 import { apiRoutes } from '../shared/routes.ts';
-import type { WebSocketMessage } from '../shared/types.ts';
+import type { Nullish, WebSocketMessage } from '../shared/types.ts';
 import { WebSocketMessageCodec } from '../shared/types.ts';
 
 function fullWebsocketUrl() {
@@ -20,14 +22,22 @@ type PendingRequest = {
 };
 
 export class ClientSocket {
-  private ws: WebSocket;
+  private ws: Sockette;
   private handlers: HandlerEntry[] = [];
   private onceHandlers: HandlerEntry[] = [];
   private pendingRequests = new Map<string, PendingRequest>();
+  private heartbeatInterval: Nullish<NodeJS.Timeout> = null;
+  private state: 'closed' | 'connecting' | 'connected' = 'closed';
+  private sendAfterOpenedQueue: WebSocketMessage[] = [];
 
   constructor() {
-    this.ws = new WebSocket(fullWebsocketUrl());
-    this.bind();
+    this.ws = new Sockette(fullWebsocketUrl(), {
+      onclose: this.closed,
+      onerror: this.errored,
+      onmessage: this.receive,
+      onopen: this.opened,
+      onreconnect: this.opened,
+    });
   }
 
   /**
@@ -41,14 +51,15 @@ export class ClientSocket {
     });
   }
 
+  private sendNow(msg: WebSocketMessage) {
+    this.ws.send(WebSocketMessageCodec.encode(msg));
+  }
+
   send(msg: WebSocketMessage) {
-    const sendNow = () => this.ws.send(WebSocketMessageCodec.encode(msg));
-    // a request racing the handshake would otherwise throw InvalidStateError
-    if (this.ws.readyState === WebSocket.CONNECTING) {
-      this.ws.addEventListener('open', sendNow, { once: true });
-      return;
+    if (this.state !== 'connected') {
+      return this.sendAfterOpenedQueue.push(msg);
     }
-    sendNow();
+    return this.sendNow(msg);
   }
 
   on<E extends WebSocketMessage['type']>(
@@ -67,21 +78,24 @@ export class ClientSocket {
     this.onceHandlers.push({ handler, type });
   }
 
-  private bind() {
-    this.ws.addEventListener('message', this.receive);
-    this.on('pulse', ({ requestId }) => {
-      this.send({ requestId, sender: 'client', type: 'heartbeat' });
-    });
-    this.ws.addEventListener('close', () => {
-      this.rejectPending(
-        'websocket connection closed before a response arrived',
-      );
-    });
-    this.ws.addEventListener('error', () => {
-      this.rejectPending(
-        'websocket connection errored before a response arrived',
-      );
-    });
+  killHeartbeat() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+    }
+    this.heartbeatInterval = null;
+  }
+
+  startHeartbeat() {
+    this.killHeartbeat();
+    const sendPulse = () =>
+      this.send({
+        requestId: uuid(),
+        sender: 'client',
+        type: 'request-heartbeat',
+      });
+    sendPulse();
+
+    this.heartbeatInterval = setInterval(sendPulse, 5000);
   }
 
   /** rejects every in-flight request, since its response can no longer arrive */
@@ -91,6 +105,24 @@ export class ClientSocket {
     }
     this.pendingRequests.clear();
   }
+
+  private closed = () => {
+    this.rejectPending('WebSocket connection was closed');
+    this.killHeartbeat();
+  };
+
+  private errored = () => {
+    this.rejectPending('WebSocket encountered an error');
+  };
+
+  private opened = () => {
+    this.state = 'connected';
+    for (const enqueued of this.sendAfterOpenedQueue) {
+      this.sendNow(enqueued);
+    }
+    this.sendAfterOpenedQueue = [];
+    this.startHeartbeat();
+  };
 
   private receive = (evt: MessageEvent) => {
     let data: WebSocketMessage;

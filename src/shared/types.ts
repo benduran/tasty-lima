@@ -62,13 +62,13 @@ const BaseWebsocketSchema = z.object({
 export const WebSocketMessageSchema = z.discriminatedUnion('type', [
   z.object({
     ...BaseWebsocketSchema.shape,
-    sender: z.literal('server'),
-    type: z.literal('pulse'),
+    sender: z.literal('client'),
+    type: z.literal('request-heartbeat'),
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
-    sender: z.literal('client'),
-    type: z.literal('heartbeat'),
+    sender: z.literal('server'),
+    type: z.literal('response-heartbeat'),
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
@@ -161,13 +161,14 @@ type WsResponseTypeShape = {
   [Suffix in SharedSuffix as `request-${Suffix}`]: `response-${Suffix}`;
 };
 
-export const WsResponseType = {
+export const WsResponseMap = {
   'request-create-instance': 'response-create-instance',
+  'request-heartbeat': 'response-heartbeat',
   'request-query-instances': 'response-query-instances',
   'request-query-machine-info': 'response-query-machine-info',
   'request-query-public-templates': 'response-query-public-templates',
 } as const satisfies WsResponseTypeShape;
-export type WsResponseType = typeof WsResponseType;
+export type WsResponseType = typeof WsResponseMap;
 
 /** request message names, verified by WsResponseTypeShape to pair with a response */
 export type WsRequestMessageName = keyof WsResponseType;
@@ -189,7 +190,7 @@ export type WsRequestMessageBody = StripRequestId<WsRequestMessage>;
 export function responseNameOf<Message extends { type: WsRequestMessageName }>(
   message: Message,
 ): WsResponseType[Message['type']] {
-  return WsResponseType[message.type] as WsResponseType[Message['type']];
+  return WsResponseMap[message.type] as WsResponseType[Message['type']];
 }
 
 export const WebSocketMessageCodec = z.codec(
