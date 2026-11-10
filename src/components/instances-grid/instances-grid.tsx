@@ -1,5 +1,7 @@
+import { PlayIcon, SquareStopIcon, TrashIcon } from 'lucide-react';
 import type { LimaInstance, Nullish } from '../../shared/types.ts';
 import { arrayHasItems, bytesToGb } from '../../shared/util.ts';
+import { Button } from '../ui/button.tsx';
 import { Skeleton } from '../ui/skeleton.tsx';
 import {
   Table,
@@ -9,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table.tsx';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip.tsx';
 import { COLS_COUNT } from './constants.ts';
 import { EmptyGrid } from './empty-grid.tsx';
 
@@ -29,6 +32,7 @@ export function InstancesGrid({ instances, loading }: InstancesGridProps) {
           <TableHead>CPU</TableHead>
           <TableHead>MEM</TableHead>
           <TableHead>DISK</TableHead>
+          <TableHead className="max-w-25" />
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -42,17 +46,73 @@ export function InstancesGrid({ instances, loading }: InstancesGridProps) {
           ))}
         {!loading && !arrayHasItems(instances) && <EmptyGrid />}
         {arrayHasItems(instances) &&
-          instances?.map(vm => (
-            <TableRow key={vm.name}>
-              <TableCell className="text-[23px]">{vm.name}</TableCell>
-              <TableCell>{vm.status}</TableCell>
-              <TableCell>{vm.config?.os}</TableCell>
-              <TableCell>{vm.arch}</TableCell>
-              <TableCell>{vm.cpus}</TableCell>
-              <TableCell>{bytesToGb(vm.memory)}GiB</TableCell>
-              <TableCell>{bytesToGb(vm.disk)}GiB</TableCell>
-            </TableRow>
-          ))}
+          instances?.map(vm => {
+            const deleteTooltip = `Delete ${vm.name}`;
+            const startTooltip = `Boot ${vm.name}`;
+            const stopTooltip = `Shutdown ${vm.name}`;
+
+            return (
+              <TableRow key={vm.name}>
+                <TableCell className="text-[23px]">{vm.name}</TableCell>
+                <TableCell>{vm.status}</TableCell>
+                <TableCell>{vm.config?.os}</TableCell>
+                <TableCell>{vm.arch}</TableCell>
+                <TableCell>{vm.cpus}</TableCell>
+                <TableCell>{bytesToGb(vm.memory)}GiB</TableCell>
+                <TableCell>{bytesToGb(vm.disk)}GiB</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {vm.status === 'Stopped' && (
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              aria-label={startTooltip}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <PlayIcon />
+                            </Button>
+                          }
+                        />
+                        <TooltipContent>{startTooltip}</TooltipContent>
+                      </Tooltip>
+                    )}
+                    {vm.status === 'Running' && (
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              aria-label={stopTooltip}
+                              size="sm"
+                              variant="outline"
+                            >
+                              <SquareStopIcon />
+                            </Button>
+                          }
+                        />
+                        <TooltipContent>{stopTooltip}</TooltipContent>
+                      </Tooltip>
+                    )}
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            aria-label={deleteTooltip}
+                            size="sm"
+                            variant="outline"
+                          >
+                            <TrashIcon />
+                          </Button>
+                        }
+                      />
+                      <TooltipContent>{deleteTooltip}</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
       </TableBody>
     </Table>
   );

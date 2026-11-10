@@ -25,17 +25,40 @@ function limaChildEnv(): NodeJS.ProcessEnv {
   };
 }
 
-async function limaExec(args: string[]) {
+async function limaExec(
+  args: string[],
+  opts?: Partial<{
+    onStderr: (chunk: unknown) => void;
+    onStdout: (chunk: unknown) => void;
+  }>,
+) {
   const binPath = getLimaBinaryPath();
   if (!binPath) {
     throw new Error(
       `unable execute limactl because no limactl bin path was configured. this is a bug 🐛`,
     );
   }
-  const result = await execa(binPath, args, {
+  const child = execa(binPath, args, {
     env: limaChildEnv(),
     stdio: 'pipe',
   });
+
+  if (opts?.onStderr) {
+    child.stderr.on('data', opts.onStderr);
+  }
+  if (opts?.onStdout) {
+    child.stdout.on('data', opts.onStdout);
+  }
+
+  const result = await child;
+
+  if (opts?.onStderr) {
+    child.stderr.off('data', opts.onStderr);
+  }
+  if (opts?.onStdout) {
+    child.stdout.off('data', opts.onStdout);
+  }
+
   if (result.exitCode && result.exitCode !== 0) {
     throw new Error(
       `limactl ${args.join(' ')} exited with code ${result.exitCode}: ${result.stderr}`,
