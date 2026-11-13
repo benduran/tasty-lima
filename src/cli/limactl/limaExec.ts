@@ -183,3 +183,8 @@ export async function createInstance(
     await fs.rm(dir, { force: true, recursive: true });
   }
 }
+
+export async function deleteInstance(name: string) {
+  await limaExec(['rm', name]);
+  return name;
+}

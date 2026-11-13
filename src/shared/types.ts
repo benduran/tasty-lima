@@ -59,6 +59,10 @@ const BaseWebsocketSchema = z.object({
   requestId: z.uuidv4(),
 });
 
+export const DeleteInstanecResponseSchema = z.object({
+  name: z.string().nonempty(),
+});
+
 export const WebSocketMessageSchema = z.discriminatedUnion('type', [
   z.object({
     ...BaseWebsocketSchema.shape,
@@ -121,6 +125,18 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
     sender: z.literal('server'),
     type: z.literal('response-error'),
   }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    name: z.string().nonempty(),
+    sender: z.literal('client'),
+    type: z.literal('request-delete-instance'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: DeleteInstanecResponseSchema,
+    sender: z.literal('server'),
+    type: z.literal('response-delete-instance'),
+  }),
 ]);
 export type WebSocketMessage = z.infer<typeof WebSocketMessageSchema>;
 
@@ -163,6 +179,7 @@ type WsResponseTypeShape = {
 
 export const WsResponseMap = {
   'request-create-instance': 'response-create-instance',
+  'request-delete-instance': 'response-delete-instance',
   'request-heartbeat': 'response-heartbeat',
   'request-query-instances': 'response-query-instances',
   'request-query-machine-info': 'response-query-machine-info',

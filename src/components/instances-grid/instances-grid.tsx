@@ -1,7 +1,9 @@
 import { PlayIcon, SquareStopIcon, TrashIcon } from 'lucide-react';
+import { useDeleteInstance } from '../../hooks/use-delete-instance.ts';
 import type { LimaInstance, Nullish } from '../../shared/types.ts';
 import { arrayHasItems, bytesToGb } from '../../shared/util.ts';
 import { Button } from '../ui/button.tsx';
+import { ConfirmButton } from '../ui/confirm-button.tsx';
 import { Skeleton } from '../ui/skeleton.tsx';
 import {
   Table,
@@ -21,6 +23,13 @@ type InstancesGridProps = {
 };
 
 export function InstancesGrid({ instances, loading }: InstancesGridProps) {
+  /** mutations */
+  const {
+    mutate: execDelete,
+    isPending: isDeleting,
+    variables: deletionVariables,
+  } = useDeleteInstance();
+
   return (
     <Table>
       <TableHeader>
@@ -97,13 +106,20 @@ export function InstancesGrid({ instances, loading }: InstancesGridProps) {
                     <Tooltip>
                       <TooltipTrigger
                         render={
-                          <Button
+                          <ConfirmButton
                             aria-label={deleteTooltip}
+                            confirmMessage={
+                              <>Are you sure you want to delete {vm.name}?</>
+                            }
+                            loading={
+                              isDeleting && deletionVariables.name === vm.name
+                            }
+                            onConfirm={() => execDelete({ name: vm.name })}
                             size="sm"
                             variant="outline"
                           >
                             <TrashIcon />
-                          </Button>
+                          </ConfirmButton>
                         }
                       />
                       <TooltipContent>{deleteTooltip}</TooltipContent>

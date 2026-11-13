@@ -2,6 +2,7 @@ import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import type { VariantProps } from 'class-variance-authority';
 import { cva } from 'class-variance-authority';
 import { cn } from '../../lib/utils.ts';
+import { Spinner } from './spinner.tsx';
 
 /*
   CRT button system (spec: `.crt button`):
@@ -10,7 +11,7 @@ import { cn } from '../../lib/utils.ts';
   text, glow off. `.inv` (variant default) is permanently inverted.
 */
 const buttonVariants = cva(
-  'group/button inline-flex shrink-0 items-center justify-center gap-2 border bg-clip-padding text-base font-normal uppercase tracking-[0.04em] whitespace-nowrap transition-colors outline-none select-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4',
+  'group/button relative inline-flex shrink-0 items-center justify-center gap-2 border bg-clip-padding text-base font-normal uppercase tracking-[0.04em] whitespace-nowrap transition-colors outline-none select-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:not-data-loading:opacity-45 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4',
   {
     defaultVariants: {
       size: 'default',
@@ -45,18 +46,43 @@ const buttonVariants = cva(
   },
 );
 
+type ButtonProps = ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & {
+    loading?: boolean;
+  };
+
 function Button({
   className,
+  children,
+  loading,
+  disabled,
   variant = 'default',
   size = 'default',
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonProps) {
   return (
     <ButtonPrimitive
       className={cn(buttonVariants({ className, size, variant }))}
+      data-loading={loading || undefined}
       data-slot="button"
+      disabled={disabled || loading}
       {...props}
-    />
+    >
+      {/*
+        Children always render and keep occupying space (so the button's
+        width — and the page layout — never shifts), but go invisible
+        while loading so the spinner overlay fully masks them.
+      */}
+      <span className={cn('contents', loading && 'invisible')}>{children}</span>
+      {loading && (
+        <span
+          className="absolute inset-0 z-1 grid place-items-center"
+          data-slot="button-loading"
+        >
+          <Spinner className="size-[1em]" />
+        </span>
+      )}
+    </ButtonPrimitive>
   );
 }
 

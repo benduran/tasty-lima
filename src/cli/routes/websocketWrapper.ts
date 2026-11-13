@@ -8,6 +8,7 @@ import {
   listInstances,
   listTemplates,
 } from '../limactl/index.ts';
+import { deleteInstance } from '../limactl/limaExec.ts';
 import { getMachineInfo } from '../machine/get-info.ts';
 
 export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
@@ -30,6 +31,13 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
         case 'request-create-instance':
           return send({
             data: await createInstance(parsed.createLimaVM),
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
+        case 'request-delete-instance':
+          return send({
+            data: { name: await deleteInstance(parsed.name) },
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),

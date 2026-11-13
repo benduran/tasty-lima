@@ -1,4 +1,4 @@
-import type { ComponentProps, ReactNode } from 'react';
+import { type ComponentProps, type ReactNode, useState } from 'react';
 import { Button } from './button.tsx';
 import {
   Popover,
@@ -27,24 +27,42 @@ export function ConfirmButton({
   onConfirm,
   ...rest
 }: ConfirmButtonProps) {
+  /** state */
+  const [open, setOpen] = useState(false);
+
   return (
-    <Popover>
+    <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger render={<Button {...rest} />} />
       <PopoverContent>
         <PopoverHeader>
           <PopoverTitle>{confirmTitle}</PopoverTitle>
-          <PopoverDescription>
-            <div className="flex flex-col gap-2">
-              <div>{confirmMessage}</div>
-              <div className="flex items-center justify-end gap-2">
-                <Button size="sm" variant="outline">
-                  {cancelButtonText}
-                </Button>
-                <Button size="sm">{confirmButtonText}</Button>
-              </div>
-            </div>
-          </PopoverDescription>
+          <PopoverDescription>{confirmMessage}</PopoverDescription>
         </PopoverHeader>
+        {/*
+          Lives outside PopoverDescription (a <p>) — block content can't
+          nest inside it.
+        */}
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            onClick={() => {
+              setOpen(false);
+              onCancel?.();
+            }}
+            size="sm"
+            variant="outline"
+          >
+            {cancelButtonText}
+          </Button>
+          <Button
+            onClick={() => {
+              onConfirm();
+              setOpen(false);
+            }}
+            size="sm"
+          >
+            {confirmButtonText}
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
