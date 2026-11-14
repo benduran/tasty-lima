@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { useCreateInstance } from '../../hooks/use-create-instance.ts';
 import { useQueryMachineInfo } from '../../hooks/use-query-machine-info.ts';
 import { useQueryPublicTemplates } from '../../hooks/use-query-public-templates.ts';
+import { withExistingQuery } from '../../lib/with-existing-query.ts';
 import { uiRoutes } from '../../routes/index.ts';
 import { LimaYAMLInputCodec } from '../../shared/codecs.ts';
 import {
@@ -275,7 +276,7 @@ export function useVmSettings() {
               queryKey: INSTANCE_QUERY_KEY,
             });
             resetNewVmStore();
-            setLocation(uiRoutes.instances());
+            setLocation(withExistingQuery(uiRoutes.instances()));
           },
         },
       );
@@ -301,7 +302,7 @@ export function useVmSettings() {
   );
 
   const handleCancel = useCallback(
-    () => setLocation(uiRoutes.instances()),
+    () => setLocation(withExistingQuery(uiRoutes.instances())),
     [setLocation],
   );
 

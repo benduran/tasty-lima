@@ -74,7 +74,7 @@ export class ClientSocket {
     handler: (data: Extract<WebSocketMessage, E>) => void,
   ) {
     this.handlers = this.handlers.filter(
-      h => h.type !== type && h.handler !== handler,
+      h => h.type !== type || h.handler !== handler,
     );
   }
 
@@ -145,7 +145,9 @@ export class ClientSocket {
       return console.warn('dropping a malformed websocket message', unknown);
     }
 
-    const pending = this.pendingRequests.get(data.requestId);
+    const pending = data.type.startsWith('response-')
+      ? this.pendingRequests.get(data.requestId)
+      : undefined;
     if (pending) {
       this.pendingRequests.delete(data.requestId);
       pending.resolve(data);

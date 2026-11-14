@@ -14,14 +14,7 @@ export type LogLevel = z.infer<typeof LogLevelSchema>;
 export const LogLineSchema = z.object({
   level: LogLevelSchema,
   msg: z.string(),
-  t: z.union([z.int(), z.string(), z.date()]).transform(val => {
-    if (typeof val === 'number') {
-      const d = new Date();
-      d.setTime(val);
-      return d;
-    }
-    return new Date(val);
-  }),
+  t: z.union([z.int(), z.string(), z.date()]),
 });
 
 export type LogLine = z.infer<typeof LogLineSchema>;

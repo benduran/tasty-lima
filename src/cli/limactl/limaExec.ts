@@ -9,6 +9,7 @@ import type {
   CreateLimaVM,
   LimaInstance,
   LimaYAMLInput,
+  LogLevel,
   LogLine,
 } from '../../shared/types.ts';
 import { LimaInstanceSchema } from '../../shared/types.ts';
@@ -29,8 +30,7 @@ function limaChildEnv(): NodeJS.ProcessEnv {
 async function limaExec(
   args: string[],
   opts?: Partial<{
-    onStderr: (chunk: unknown) => void;
-    onStdout: (chunk: unknown) => void;
+    onChunk: (chunk: Buffer) => void;
   }>,
 ) {
   const binPath = getLimaBinaryPath();
@@ -40,24 +40,19 @@ async function limaExec(
     );
   }
   const child = execa(binPath, args, {
+    all: true,
     env: limaChildEnv(),
     stdio: 'pipe',
   });
 
-  if (opts?.onStderr) {
-    child.stderr.on('data', opts.onStderr);
-  }
-  if (opts?.onStdout) {
-    child.stdout.on('data', opts.onStdout);
+  if (opts?.onChunk) {
+    child.all.on('data', opts.onChunk);
   }
 
   const result = await child;
 
-  if (opts?.onStderr) {
-    child.stderr.off('data', opts.onStderr);
-  }
-  if (opts?.onStdout) {
-    child.stdout.off('data', opts.onStdout);
+  if (opts?.onChunk) {
+    child.all.off('data', opts.onChunk);
   }
 
   if (result.exitCode && result.exitCode !== 0) {
@@ -140,6 +135,44 @@ async function withNonCollidingGuestHome(
   return { ...config, user: { ...config.user, home } };
 }
 
+/**
+ * limactl writes all of its logs to stderr via logrus, in either its bracket
+ * form (`INFO[0000] …`) or its key=value form (`level=info …`) depending on
+ * the terminal. stdout only carries non-log output.
+ */
+function limactlLogLevel(line: string): LogLevel {
+  const bracket = /^\s*(DEBU|INFO|WARN|ERRO|FATA)\[/.exec(line)?.[1];
+  const keyed = /\blevel=(error|fatal|warning|info|debug|trace)\b/.exec(
+    line,
+  )?.[1];
+  switch (bracket ?? keyed) {
+    case 'ERRO':
+    case 'error':
+    case 'FATA':
+    case 'fatal':
+      return 'error';
+    case 'WARN':
+    case 'warning':
+      return 'warn';
+    default:
+      return 'info';
+  }
+}
+
+/** one interleaved chunk from limactl: split it into lines and stream each */
+function createHandleChunk(onLine?: (line: LogLine) => void) {
+  return (chunk: Buffer) => {
+    for (const msg of chunk.toString('utf-8').split('\n')) {
+      if (!msg) continue;
+      onLine?.({
+        level: limactlLogLevel(msg),
+        msg,
+        t: Date.now(),
+      });
+    }
+  };
+}
+
 export async function createInstance(
   opts: CreateLimaVM,
   onLine?: (line: LogLine) => void,
@@ -163,19 +196,7 @@ export async function createInstance(
       `--name=${opts.name}`,
     ];
 
-    // biome-ignore lint/suspicious/noExplicitAny: chunks are typed as anys in the node typings
-    const createHandleStdio = (which: 'stderr' | 'stdout') => (chunk: any) => {
-      const line = Buffer.from(chunk).toString('utf-8');
-      onLine?.({
-        level: which === 'stderr' ? 'error' : 'info',
-        msg: line,
-        t: new Date(),
-      });
-    };
-    await limaExec(args, {
-      onStderr: createHandleStdio('stderr'),
-      onStdout: createHandleStdio('stdout'),
-    });
+    await limaExec(args, { onChunk: createHandleChunk(onLine) });
 
     const created = (await listInstances()).find(
       instance => instance.name === opts.name,
