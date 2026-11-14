@@ -160,11 +160,3 @@ export class ClientSocket {
     }
   };
 }
-
-let socket: ClientSocket | undefined;
-
-/** one connection, shared by every fetch in the app */
-export function getSocket(): ClientSocket {
-  socket ??= new ClientSocket();
-  return socket;
-}

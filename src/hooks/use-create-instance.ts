@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from '../components/ui/toast.tsx';
+import { useClientSocket } from '../providers/ClientSocketProvider.tsx';
 import { errorToString } from '../shared/error-to-string.ts';
 import type { CreateLimaVM } from '../shared/types.ts';
 import { CreateLimaVMSchema, LimaInstanceSchema } from '../shared/types.ts';
@@ -8,6 +9,9 @@ import { websocketFetch } from '../shared/websocket-fetch.ts';
 const MUTATION_KEY = ['useCreateInstance'] as const;
 
 export function useCreateInstance() {
+  /** context */
+  const { socket } = useClientSocket();
+
   return useMutation({
     mutationFn: async (opts: CreateLimaVM) => {
       const validated = CreateLimaVMSchema.parse(opts);
@@ -18,6 +22,7 @@ export function useCreateInstance() {
           type: 'request-create-instance',
         },
         schema: LimaInstanceSchema,
+        socket,
       });
     },
     mutationKey: MUTATION_KEY,

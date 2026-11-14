@@ -1,7 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import type { z } from 'zod';
 import type { ClientSocket } from '../lib/client-socket.ts';
-import { getSocket } from '../lib/client-socket.ts';
 import type { WsRequestMessage, WsRequestMessageBody } from './types.ts';
 
 export class WebSocketFetchError extends Error {
@@ -13,7 +12,7 @@ export class WebSocketFetchError extends Error {
 type WebsocketFetchOpts<S extends z.ZodType> = {
   body: WsRequestMessageBody;
   schema: S;
-  socket?: ClientSocket;
+  socket: ClientSocket;
 };
 
 /**
@@ -22,7 +21,7 @@ type WebsocketFetchOpts<S extends z.ZodType> = {
 export async function websocketFetch<S extends z.ZodType>({
   body,
   schema,
-  socket = getSocket(),
+  socket,
 }: WebsocketFetchOpts<S>): Promise<z.output<S>> {
   const requestId = uuid();
   const response = await socket.request({
