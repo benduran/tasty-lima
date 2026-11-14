@@ -69,6 +69,14 @@ export class ClientSocket {
     // @ts-expect-error - whatever, typescript
     this.handlers.push({ handler, type });
   }
+  off<E extends WebSocketMessage['type']>(
+    type: E,
+    handler: (data: Extract<WebSocketMessage, E>) => void,
+  ) {
+    this.handlers = this.handlers.filter(
+      h => h.type !== type && h.handler !== handler,
+    );
+  }
 
   once<E extends WebSocketMessage['type']>(
     type: E,

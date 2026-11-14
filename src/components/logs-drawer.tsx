@@ -1,5 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSearchParams } from 'wouter';
+import { useClientSocket } from '../providers/ClientSocketProvider.tsx';
+import type { WebSocketMessage } from '../shared/types.ts';
 import { useInstanceLogsStore } from '../stores/instance-logs-store.ts';
 import {
   LOG_VIEWER_QUERY_PARAM,
@@ -11,7 +13,8 @@ import { Drawer, DrawerContent } from './ui/drawer.tsx';
 
 export function LogsDrawer() {
   /** store */
-  const [logsMap] = useInstanceLogsStore('logs');
+  const { socket } = useClientSocket();
+  const [logsMap, setLogsMap] = useInstanceLogsStore('logs');
 
   /** routing */
   const [search] = useSearchParams();
@@ -23,6 +26,25 @@ export function LogsDrawer() {
     () => (vmName ? (logsMap?.[vmName] ?? []) : []),
     [logsMap, vmName],
   );
+
+  /** effects */
+  useEffect(() => {
+    if (!socket || !vmName) return;
+    const handler = (
+      msg: Extract<WebSocketMessage, { type: 'stream-instance-logs' }>,
+    ) => {
+      setLogsMap(prev => ({
+        ...prev,
+        [vmName]: [...(prev?.[vmName] ?? []), msg.data],
+      }));
+    };
+
+    socket.on('stream-instance-logs', handler);
+
+    return () => {
+      socket.off('stream-instance-logs', handler);
+    };
+  }, [socket, setLogsMap, vmName]);
 
   return (
     <Drawer

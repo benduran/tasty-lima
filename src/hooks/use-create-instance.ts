@@ -4,12 +4,14 @@ import { useClientSocket } from '../providers/ClientSocketProvider.tsx';
 import type { CreateLimaVM } from '../shared/types.ts';
 import { CreateLimaVMSchema, LimaInstanceSchema } from '../shared/types.ts';
 import { websocketFetch } from '../shared/websocket-fetch.ts';
+import { useOpenLogsViewer } from '../stores/new-vm-store.ts';
 
 const MUTATION_KEY = ['useCreateInstance'] as const;
 
 export function useCreateInstance() {
   /** context */
   const { socket } = useClientSocket();
+  const openLogsViewer = useOpenLogsViewer();
 
   return useMutation({
     meta: {
@@ -17,6 +19,8 @@ export function useCreateInstance() {
     },
     mutationFn: async (opts: CreateLimaVM) => {
       const validated = CreateLimaVMSchema.parse(opts);
+      openLogsViewer(validated.name);
+
       return await websocketFetch({
         body: {
           data: validated,
