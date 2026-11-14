@@ -1,10 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
-import { toast } from '../components/ui/toast.tsx';
+import { toast } from 'sonner';
 import { useClientSocket } from '../providers/ClientSocketProvider.tsx';
 import type { CreateLimaVM } from '../shared/types.ts';
 import { CreateLimaVMSchema, LimaInstanceSchema } from '../shared/types.ts';
 import { websocketFetch } from '../shared/websocket-fetch.ts';
-import { useOpenLogsViewer } from '../stores/new-vm-store.ts';
+import {
+  useCloseLogsViewer,
+  useOpenLogsViewer,
+} from '../stores/new-vm-store.ts';
 
 const MUTATION_KEY = ['useCreateInstance'] as const;
 
@@ -12,6 +15,7 @@ export function useCreateInstance() {
   /** context */
   const { socket } = useClientSocket();
   const openLogsViewer = useOpenLogsViewer();
+  const closeLogsViewer = useCloseLogsViewer();
 
   return useMutation({
     meta: {
@@ -33,10 +37,8 @@ export function useCreateInstance() {
     },
     mutationKey: MUTATION_KEY,
     onSuccess: (_data, opts) => {
-      toast.add({
-        title: `VM "${opts.name}" created`,
-        type: 'success',
-      });
+      toast.success(`VM "${opts.name}" created`);
+      closeLogsViewer();
     },
   });
 }

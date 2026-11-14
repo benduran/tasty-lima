@@ -19,6 +19,10 @@ import { logger } from '../logger.ts';
 import { getLimaBinaryPath } from './ensureLimaCtl.ts';
 import { getQemuPathDirs } from './ensureQemuLinux.ts';
 
+type OnChunkOpts = Partial<{
+  onChunk: (chunk: Buffer) => void;
+}>;
+
 function limaChildEnv(): NodeJS.ProcessEnv {
   const qemuPathDirs = getQemuPathDirs();
   if (qemuPathDirs.length === 0) return {};
@@ -27,12 +31,7 @@ function limaChildEnv(): NodeJS.ProcessEnv {
   };
 }
 
-async function limaExec(
-  args: string[],
-  opts?: Partial<{
-    onChunk: (chunk: Buffer) => void;
-  }>,
-) {
+async function limaExec(args: string[], opts?: OnChunkOpts) {
   const binPath = getLimaBinaryPath();
   if (!binPath) {
     throw new Error(
@@ -42,6 +41,7 @@ async function limaExec(
   const child = execa(binPath, args, {
     all: true,
     env: limaChildEnv(),
+    reject: false,
     stdio: 'pipe',
   });
 
@@ -55,9 +55,9 @@ async function limaExec(
     child.all.off('data', opts.onChunk);
   }
 
-  if (result.exitCode && result.exitCode !== 0) {
+  if (result.failed) {
     throw new Error(
-      `limactl ${args.join(' ')} exited with code ${result.exitCode}: ${result.stderr}`,
+      `limactl ${args.join(' ')} exited with code ${result.exitCode ?? 'unknown'}: ${result.stderr}`,
     );
   }
   return result.stdout;
@@ -173,6 +173,31 @@ function createHandleChunk(onLine?: (line: LogLine) => void) {
   };
 }
 
+/**
+ * limactl exits non-zero when a boot ends up "degraded" (e.g. a boot script
+ * failed) even though the VM itself came up. Only surface the failure when
+ * the instance did not actually start; the degraded detail is already in the
+ * streamed log lines.
+ */
+async function tolerateDegradedBoot(
+  name: string,
+  error: unknown,
+  onLine?: (line: LogLine) => void,
+) {
+  const instance = (await listInstances()).find(
+    candidate => candidate.name === name,
+  );
+  if (instance?.status === 'Running') {
+    onLine?.({
+      level: 'warn',
+      msg: `limactl reported a degraded boot, but the instance is running`,
+      t: Date.now(),
+    });
+    return;
+  }
+  throw error;
+}
+
 export async function createInstance(
   opts: CreateLimaVM,
   onLine?: (line: LogLine) => void,
@@ -196,7 +221,15 @@ export async function createInstance(
       `--name=${opts.name}`,
     ];
 
-    await limaExec(args, { onChunk: createHandleChunk(onLine) });
+    try {
+      await limaExec(args, { onChunk: createHandleChunk(onLine) });
+    } catch (error) {
+      if (opts.startAfterCreate) {
+        await tolerateDegradedBoot(opts.name, error, onLine);
+      } else {
+        throw error;
+      }
+    }
 
     const created = (await listInstances()).find(
       instance => instance.name === opts.name,
@@ -210,6 +243,28 @@ export async function createInstance(
   } finally {
     await fs.rm(dir, { force: true, recursive: true });
   }
+}
+
+export async function bootInstance(
+  name: string,
+  onLine?: (line: LogLine) => void,
+) {
+  try {
+    await limaExec(['--tty=false', 'start', name], {
+      onChunk: createHandleChunk(onLine),
+    });
+  } catch (error) {
+    await tolerateDegradedBoot(name, error, onLine);
+  }
+  return name;
+}
+
+export async function shutdownInstance(
+  name: string,
+  onLine?: (line: LogLine) => void,
+) {
+  await limaExec(['stop', name], { onChunk: createHandleChunk(onLine) });
+  return name;
 }
 
 export async function deleteInstance(name: string) {

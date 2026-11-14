@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { SubmitEvent } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { z } from 'zod';
 import { useCreateInstance } from '../../hooks/use-create-instance.ts';
@@ -44,7 +45,6 @@ import {
   useResetNewVMStore,
 } from '../../stores/new-vm-store.ts';
 import { isPlaceholderProvision } from '../provision-scripts-table.tsx';
-import { toast } from '../ui/toast.tsx';
 
 const INSTANCE_QUERY_KEY = ['useQueryInstances'] as const;
 
@@ -221,10 +221,8 @@ export function useVmSettings() {
         try {
           setRawYaml(LimaYAMLInputCodec.encode(buildSubmitConfig()));
         } catch (error) {
-          toast.add({
+          toast.error('The current draft cannot be serialized to YAML', {
             description: errorToString(error),
-            title: 'The current draft cannot be serialized to YAML',
-            type: 'error',
           });
           return;
         }

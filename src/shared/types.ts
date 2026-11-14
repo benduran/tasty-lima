@@ -74,6 +74,14 @@ export const DeleteInstanecResponseSchema = z.object({
   name: z.string().nonempty(),
 });
 
+export const BootInstanceRequestResponseSchema = z.object({
+  name: z.string().nonempty(),
+});
+
+export const ShutdownInstanceRequestResponseSchema = z.object({
+  name: z.string().nonempty(),
+});
+
 export const WebSocketMessageSchema = z.discriminatedUnion('type', [
   z.object({
     ...BaseWebsocketSchema.shape,
@@ -154,6 +162,30 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
     sender: z.literal('server'),
     type: z.literal('stream-instance-logs'),
   }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: z.object({ name: z.string().nonempty() }),
+    sender: z.literal('client'),
+    type: z.literal('request-boot-instance'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: BootInstanceRequestResponseSchema,
+    sender: z.literal('server'),
+    type: z.literal('response-boot-instance'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: z.object({ name: z.string().nonempty() }),
+    sender: z.literal('client'),
+    type: z.literal('request-shutdown-instance'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: ShutdownInstanceRequestResponseSchema,
+    sender: z.literal('server'),
+    type: z.literal('response-shutdown-instance'),
+  }),
 ]);
 export type WebSocketMessage = z.infer<typeof WebSocketMessageSchema>;
 
@@ -195,12 +227,14 @@ type WsResponseTypeShape = {
 };
 
 export const WsResponseMap = {
+  'request-boot-instance': 'response-boot-instance',
   'request-create-instance': 'response-create-instance',
   'request-delete-instance': 'response-delete-instance',
   'request-heartbeat': 'response-heartbeat',
   'request-query-instances': 'response-query-instances',
   'request-query-machine-info': 'response-query-machine-info',
   'request-query-public-templates': 'response-query-public-templates',
+  'request-shutdown-instance': 'response-shutdown-instance',
 } as const satisfies WsResponseTypeShape;
 export type WsResponseType = typeof WsResponseMap;
 

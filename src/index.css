@@ -253,3 +253,17 @@
     text-shadow: 0 0 1px color-mix(in srgb, var(--p) 35%, transparent);
   }
 }
+
+/* Sonner toasts on the CRT: sonner's bundled stylesheet is unlayered and
+   hardcodes its dark theme, so these selectors out-rank it (sonner's colors
+   themselves are already redirected to the design tokens inline via
+   <Toaster /> in ui/sonner.tsx). */
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  font-size: var(--text-sm);
+  text-shadow: 0 0 1px color-mix(in srgb, var(--p) 35%, transparent);
+}
+[data-sonner-toaster]
+  [data-sonner-toast][data-styled="true"]
+  [data-description] {
+  color: var(--muted-foreground);
+}

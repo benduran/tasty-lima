@@ -8,7 +8,11 @@ import {
   listInstances,
   listTemplates,
 } from '../limactl/index.ts';
-import { deleteInstance } from '../limactl/limaExec.ts';
+import {
+  bootInstance,
+  deleteInstance,
+  shutdownInstance,
+} from '../limactl/limaExec.ts';
 import { getMachineInfo } from '../machine/get-info.ts';
 
 export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
@@ -44,6 +48,43 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
             type: responseNameOf(parsed),
           });
         }
+        case 'request-boot-instance': {
+          const handleSendLine = (data: LogLine) => {
+            send({
+              data,
+              requestId,
+              sender: 'server',
+              type: 'stream-instance-logs',
+            });
+          };
+          return send({
+            data: {
+              name: await bootInstance(parsed.data.name, handleSendLine),
+            },
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
+        }
+        case 'request-shutdown-instance': {
+          const handleSendLine = (data: LogLine) => {
+            send({
+              data,
+              requestId,
+              sender: 'server',
+              type: 'stream-instance-logs',
+            });
+          };
+          return send({
+            data: {
+              name: await shutdownInstance(parsed.data.name, handleSendLine),
+            },
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
+        }
+
         case 'request-delete-instance':
           return send({
             data: { name: await deleteInstance(parsed.data.name) },

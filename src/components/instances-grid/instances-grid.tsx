@@ -1,5 +1,7 @@
 import { PlayIcon, SquareStopIcon, TrashIcon } from 'lucide-react';
+import { useBootInstance } from '../../hooks/use-boot-instance.ts';
 import { useDeleteInstance } from '../../hooks/use-delete-instance.ts';
+import { useShutdownInstance } from '../../hooks/use-shutdown-instance.ts';
 import type { LimaInstance, Nullish } from '../../shared/types.ts';
 import { arrayHasItems, bytesToGb } from '../../shared/util.ts';
 import { Button } from '../ui/button.tsx';
@@ -29,6 +31,18 @@ export function InstancesGrid({ instances, loading }: InstancesGridProps) {
     isPending: isDeleting,
     variables: deletionVariables,
   } = useDeleteInstance();
+
+  const {
+    mutate: execBoot,
+    isPending: isBooting,
+    variables: bootingVariable,
+  } = useBootInstance();
+
+  const {
+    mutate: execShutdown,
+    isPending: isShuttingDown,
+    variables: shutdownVariable,
+  } = useShutdownInstance();
 
   return (
     <Table>
@@ -77,6 +91,10 @@ export function InstancesGrid({ instances, loading }: InstancesGridProps) {
                           render={
                             <Button
                               aria-label={startTooltip}
+                              loading={
+                                isBooting && bootingVariable.name === vm.name
+                              }
+                              onClick={() => execBoot({ name: vm.name })}
                               size="sm"
                               variant="outline"
                             >
@@ -93,6 +111,11 @@ export function InstancesGrid({ instances, loading }: InstancesGridProps) {
                           render={
                             <Button
                               aria-label={stopTooltip}
+                              loading={
+                                isShuttingDown &&
+                                shutdownVariable.name === vm.name
+                              }
+                              onClick={() => execShutdown({ name: vm.name })}
                               size="sm"
                               variant="outline"
                             >
