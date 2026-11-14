@@ -1,7 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from '../components/ui/toast.tsx';
 import { useClientSocket } from '../providers/ClientSocketProvider.tsx';
-import { errorToString } from '../shared/error-to-string.ts';
 import type { CreateLimaVM } from '../shared/types.ts';
 import { CreateLimaVMSchema, LimaInstanceSchema } from '../shared/types.ts';
 import { websocketFetch } from '../shared/websocket-fetch.ts';
@@ -13,6 +12,9 @@ export function useCreateInstance() {
   const { socket } = useClientSocket();
 
   return useMutation({
+    meta: {
+      errorTitle: (opts: CreateLimaVM) => `Failed to create VM "${opts.name}"`,
+    },
     mutationFn: async (opts: CreateLimaVM) => {
       const validated = CreateLimaVMSchema.parse(opts);
       return await websocketFetch({
@@ -26,14 +28,6 @@ export function useCreateInstance() {
       });
     },
     mutationKey: MUTATION_KEY,
-    onError: (err, opts) => {
-      toast.add({
-        description: errorToString(err),
-        timeout: Number.POSITIVE_INFINITY,
-        title: `Failed to create VM "${opts.name}"`,
-        type: 'error',
-      });
-    },
     onSuccess: (_data, opts) => {
       toast.add({
         title: `VM "${opts.name}" created`,

@@ -15,10 +15,12 @@ import {
 import { errorToString } from '../../shared/error-to-string.ts';
 import type {
   LimaMount,
+  LimaMountType,
   LimaSSH,
   LimaUser,
   LimaVMType,
   LimaYAMLInput,
+  Nullish,
   PortForwardInput,
 } from '../../shared/types.ts';
 import {
@@ -44,6 +46,38 @@ import { isPlaceholderProvision } from '../provision-scripts-table.tsx';
 import { toast } from '../ui/toast.tsx';
 
 const INSTANCE_QUERY_KEY = ['useQueryInstances'] as const;
+
+const WSL2_TEMPLATE_NAME = 'experimental/wsl2';
+
+/** mount types each lima driver accepts (lima 2.3.0) */
+function mountTypesFor(
+  vmType: LimaVMType,
+  platform: Nullish<string>,
+): LimaMountType[] {
+  if (vmType === 'wsl2') return ['wsl2'];
+  if (vmType === 'vz') return ['virtiofs', 'reverse-sshfs'];
+  switch (platform) {
+    case 'win32':
+      /** QEMU on Windows supports no other mount type (notably no 9p) */
+      return ['reverse-sshfs'];
+    case 'darwin':
+      return ['9p', 'reverse-sshfs'];
+    default:
+      return ['9p', 'reverse-sshfs', 'virtiofs'];
+  }
+}
+
+/** the default a lima driver resolves when `mountType` is left unset */
+function defaultMountTypeFor(
+  vmType: LimaVMType,
+  platform: Nullish<string>,
+): LimaMountType | undefined {
+  if (vmType === 'wsl2') return 'wsl2';
+  if (vmType === 'vz') return 'virtiofs';
+  if (platform === 'win32') return 'reverse-sshfs';
+  /** lima resolves 9p for QEMU on other hosts */
+  return undefined;
+}
 
 /* Sole owner of the new-VM draft state; only vm-settings-form may use this. */
 export function useVmSettings() {
@@ -309,11 +343,19 @@ export function useVmSettings() {
   const onVmTypeChange = useCallback(
     (value: string) => {
       const validated = LimaVMTypeSchema.safeParse(value);
-      if (validated.success) {
-        setVmType(validated.data);
+      if (!validated.success) return;
+
+      setVmType(validated.data);
+      /** the WSL2 driver can only boot rootfs tarballs */
+      if (validated.data === 'wsl2') {
+        if (selectedTemplate !== WSL2_TEMPLATE_NAME) {
+          setBaseFromTemplate(WSL2_TEMPLATE_NAME);
+        }
+      } else if (selectedTemplate === WSL2_TEMPLATE_NAME) {
+        setBaseFromTemplate('default');
       }
     },
-    [setVmType],
+    [selectedTemplate, setBaseFromTemplate, setVmType],
   );
 
   const onMountTypeChange = useCallback(
@@ -355,16 +397,29 @@ export function useVmSettings() {
     [setSSH, sshDraft],
   );
 
-  /** vz is macOS-only (Apple Virtualization), but qemu works everywhere */
+  /** vz is macOS-only (Apple Virtualization), but qemu works everywhere.
+   *  wsl2 is lima's experimental Windows driver */
   const vmTypes = useMemo<Array<{ desc: string; value: LimaVMType }>>(() => {
-    if (machineInfo?.platform !== 'darwin') {
-      return [{ desc: 'QEMU', value: 'qemu' }];
+    if (machineInfo?.platform === 'win32') {
+      return [
+        { desc: 'QEMU', value: 'qemu' },
+        { desc: 'WSL2 (experimental)', value: 'wsl2' },
+      ];
     }
-    return [
-      { desc: 'Apple Virtualization', value: 'vz' },
-      { desc: 'QEMU', value: 'qemu' },
-    ];
+    if (machineInfo?.platform === 'darwin') {
+      return [
+        { desc: 'Apple Virtualization', value: 'vz' },
+        { desc: 'QEMU', value: 'qemu' },
+      ];
+    }
+    return [{ desc: 'QEMU', value: 'qemu' }];
   }, [machineInfo?.platform]);
+
+  /** mount types the selected driver accepts; the picker hides the rest */
+  const mountTypes = useMemo(
+    () => (vmType ? mountTypesFor(vmType, machineInfo?.platform) : []),
+    [machineInfo?.platform, vmType],
+  );
 
   /** vz can only run the native arch, so it dims when the choice emulates */
   const vzOff =
@@ -401,18 +456,17 @@ export function useVmSettings() {
     setCpus(1);
     setRam(String(1));
     setDisk(String(10));
-    switch (machineInfo?.platform) {
-      case 'darwin':
-        setMountType('virtiofs');
-        break;
-      case 'win32':
-        setMountType('wsl2');
-        break;
-      default:
-        setMountType(undefined);
-        break;
-    }
-  }, [machineInfo?.platform, setMountType, setCpus, setRam, setDisk]);
+  }, [setCpus, setRam, setDisk]);
+
+  /** keep the mount type compatible with the selected driver */
+  useEffect(() => {
+    if (!vmType || !machineInfo) return;
+
+    const valid = mountTypesFor(vmType, machineInfo.platform);
+    if (mountType && valid.includes(mountType)) return;
+
+    setMountType(defaultMountTypeFor(vmType, machineInfo.platform));
+  }, [machineInfo, mountType, setMountType, vmType]);
 
   useEffect(() => () => resetNewVmStore(), [resetNewVmStore]);
 
@@ -431,6 +485,7 @@ export function useVmSettings() {
     mounts: mounts ?? [],
     /** mounts section */
     mountType,
+    mountTypes,
     /** name */
     name,
     onAddMount,

@@ -54,6 +54,8 @@ export const CreateLimaVMSchema = z.object({
   config: LimaYAMLInputSchema,
   name: z.string().refine(
     val => {
+      const trimmed = val.trim();
+      if (!trimmed) return false;
       const changed = kebabCase(val);
       return changed === val;
     },

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { LimaTemplateSummary } from '../shared/codecs.ts';
-import type { MachineInfo, Nullish } from '../shared/types.ts';
+import type { LimaVMType, MachineInfo, Nullish } from '../shared/types.ts';
 import { isNullOrUndefined } from '../shared/util.ts';
 import type { AutocompleteItem } from './autocomplete.tsx';
 import { Autocomplete } from './autocomplete.tsx';
@@ -10,6 +10,7 @@ import { CrtFieldset } from './crt.tsx';
 function templateUnavailableReason(
   name: string,
   machineInfo: Nullish<MachineInfo>,
+  vmType: Nullish<LimaVMType>,
 ): Nullish<string> {
   if (!machineInfo) return null;
 
@@ -20,7 +21,11 @@ function templateUnavailableReason(
   }
 
   if (name === 'experimental/wsl2') {
-    return machineInfo.platform === 'win32' ? null : 'needs a Windows host';
+    if (machineInfo.platform !== 'win32') {
+      return 'needs a Windows host';
+    }
+    /** the WSL2 driver only boots rootfs tarballs */
+    return vmType === 'wsl2' ? null : 'needs the WSL2 VM type';
   }
 
   return null;
@@ -32,6 +37,7 @@ type TemplatePickerProps = {
   onSelect: (name: string) => void;
   selected: Nullish<string>;
   templates: Nullish<LimaTemplateSummary[]>;
+  vmType: Nullish<LimaVMType>;
 };
 
 export function TemplatePicker({
@@ -40,6 +46,7 @@ export function TemplatePicker({
   onSelect,
   selected,
   templates,
+  vmType,
 }: TemplatePickerProps) {
   /** state */
   const [showExperimental, setShowExperimental] = useState(false);
@@ -53,6 +60,7 @@ export function TemplatePicker({
           const unavailableReason = templateUnavailableReason(
             t.name,
             machineInfo,
+            vmType,
           );
 
           return {
@@ -70,7 +78,7 @@ export function TemplatePicker({
             value: t.name,
           };
         }) ?? [],
-    [templates, showExperimental, machineInfo],
+    [templates, showExperimental, machineInfo, vmType],
   );
 
   const selectedOpt = useMemo(() => {

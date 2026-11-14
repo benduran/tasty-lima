@@ -74,6 +74,7 @@ export function ImageSection({
         onSelect={onTemplateSelect}
         selected={selectedTemplate}
         templates={templates}
+        vmType={vmType}
       />
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-x-5 gap-y-5">
         <CrtFieldset legend="ARCH">

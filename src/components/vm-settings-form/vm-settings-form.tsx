@@ -24,6 +24,7 @@ export function VMSettingsForm() {
     disk,
     machineInfo,
     mountType,
+    mountTypes,
     mounts,
     name,
     onAddMount,
@@ -115,6 +116,7 @@ export function VMSettingsForm() {
             <MountsSection
               mounts={mounts}
               mountType={mountType}
+              mountTypes={mountTypes}
               onAddMount={onAddMount}
               onChangeMount={onChangeMount}
               onMountTypeChange={onMountTypeChange}

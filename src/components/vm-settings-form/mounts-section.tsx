@@ -1,12 +1,13 @@
 import { Fragment } from 'react';
 import type { LimaMount, LimaMountType, Nullish } from '../../shared/types.ts';
-import { LimaMountTypeSchema } from '../../shared/types.ts';
 import { CrtFieldset, CrtOption, CrtSection } from '../crt.tsx';
 import { MountsTable } from '../mounts-table.tsx';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group.tsx';
 
 type MountsSectionProps = {
   mountType: Nullish<LimaMountType>;
+  /** options the currently selected driver accepts */
+  mountTypes: LimaMountType[];
   mounts: LimaMount[];
   onAddMount: () => void;
   onChangeMount: (index: number, mount: LimaMount) => void;
@@ -16,6 +17,7 @@ type MountsSectionProps = {
 
 export function MountsSection({
   mountType,
+  mountTypes,
   mounts,
   onAddMount,
   onChangeMount,
@@ -36,7 +38,7 @@ export function MountsSection({
                 auto
               </label>
             </Fragment>
-            {LimaMountTypeSchema.options.map(mountTypeOpt => (
+            {mountTypes.map(mountTypeOpt => (
               <Fragment key={mountTypeOpt}>
                 <RadioGroupItem
                   className="not-first:ml-4"
