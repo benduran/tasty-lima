@@ -9,6 +9,7 @@ import type {
   CreateLimaVM,
   LimaInstance,
   LimaYAMLInput,
+  LogLine,
 } from '../../shared/types.ts';
 import { LimaInstanceSchema } from '../../shared/types.ts';
 import { isObject } from '../../shared/util.ts';
@@ -141,6 +142,7 @@ async function withNonCollidingGuestHome(
 
 export async function createInstance(
   opts: CreateLimaVM,
+  onLine?: (line: LogLine) => void,
 ): Promise<LimaInstance> {
   await fs.mkdir(TASTY_LIMA_TEMP, { recursive: true });
   const dir = await fs.mkdtemp(path.join(TASTY_LIMA_TEMP, 'create-vm-'));
@@ -154,21 +156,26 @@ export async function createInstance(
     await fs.writeFile(configFile, configYaml);
 
     logger.info(`creating lima instance ${opts.name}`, { configYaml });
-    if (opts.startAfterCreate) {
-      await limaExec([
-        '--tty=false',
-        'start',
-        configFile,
-        `--name=${opts.name}`,
-      ]);
-    } else {
-      await limaExec([
-        '--tty=false',
-        'create',
-        configFile,
-        `--name=${opts.name}`,
-      ]);
-    }
+    const args = [
+      '--tty=false',
+      opts.startAfterCreate ? 'start' : 'create',
+      configFile,
+      `--name=${opts.name}`,
+    ];
+
+    // biome-ignore lint/suspicious/noExplicitAny: chunks are typed as anys in the node typings
+    const createHandleStdio = (which: 'stderr' | 'stdout') => (chunk: any) => {
+      const line = Buffer.from(chunk).toString('utf-8');
+      onLine?.({
+        level: which === 'stderr' ? 'error' : 'info',
+        msg: line,
+        t: new Date(),
+      });
+    };
+    await limaExec(args, {
+      onStderr: createHandleStdio('stderr'),
+      onStdout: createHandleStdio('stdout'),
+    });
 
     const created = (await listInstances()).find(
       instance => instance.name === opts.name,

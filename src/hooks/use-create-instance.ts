@@ -19,7 +19,7 @@ export function useCreateInstance() {
       const validated = CreateLimaVMSchema.parse(opts);
       return await websocketFetch({
         body: {
-          createLimaVM: validated,
+          data: validated,
           sender: 'client',
           type: 'request-create-instance',
         },

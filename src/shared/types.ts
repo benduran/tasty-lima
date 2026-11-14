@@ -8,6 +8,24 @@ export * from './limactl-types.gen.ts';
 
 export type Nullish<T> = T | null | undefined;
 
+export const LogLevelSchema = z.enum(['error', 'info', 'warn']);
+export type LogLevel = z.infer<typeof LogLevelSchema>;
+
+export const LogLineSchema = z.object({
+  level: LogLevelSchema,
+  msg: z.string(),
+  t: z.union([z.int(), z.string(), z.date()]).transform(val => {
+    if (typeof val === 'number') {
+      const d = new Date();
+      d.setTime(val);
+      return d;
+    }
+    return new Date(val);
+  }),
+});
+
+export type LogLine = z.infer<typeof LogLineSchema>;
+
 export const MachineInfoSchema = z.object({
   /**
    * CPU architecture used for this machine
@@ -109,7 +127,7 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
-    createLimaVM: CreateLimaVMSchema,
+    data: CreateLimaVMSchema,
     sender: z.literal('client'),
     type: z.literal('request-create-instance'),
   }),
@@ -127,7 +145,7 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
-    name: z.string().nonempty(),
+    data: z.object({ name: z.string().nonempty() }),
     sender: z.literal('client'),
     type: z.literal('request-delete-instance'),
   }),
@@ -136,6 +154,12 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
     data: DeleteInstanecResponseSchema,
     sender: z.literal('server'),
     type: z.literal('response-delete-instance'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: LogLineSchema,
+    sender: z.literal('server'),
+    type: z.literal('stream-instance-logs'),
   }),
 ]);
 export type WebSocketMessage = z.infer<typeof WebSocketMessageSchema>;

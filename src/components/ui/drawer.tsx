@@ -2,6 +2,7 @@
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer';
 import * as React from 'react';
+import { useIsMobile } from '../../hooks/use-mobile.ts';
 import { cn } from '../../lib/utils.ts';
 
 type DrawerContextProps = {
@@ -27,11 +28,16 @@ function Drawer({
   modal = true,
   showSwipeHandle = false,
   snapPoints,
-  swipeDirection = 'down',
+  swipeDirection: swipeDirectionProp,
   ...props
 }: DrawerPrimitive.Root.Props & {
   showSwipeHandle?: boolean;
 }) {
+  // bottom sheet on mobile, right-hand sidebar on larger screens, unless
+  // the caller pins a direction themselves
+  const isMobile = useIsMobile();
+  const swipeDirection = swipeDirectionProp ?? (isMobile ? 'down' : 'right');
+
   const hasSnapPoints = snapPoints != null && snapPoints.length > 0;
   const contextValue = React.useMemo(
     () => ({ hasSnapPoints, modal, showSwipeHandle, swipeDirection }),

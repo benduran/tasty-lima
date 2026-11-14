@@ -13,7 +13,11 @@ export function useDeleteInstance() {
         throw new Error('name is required when deleting an instance');
       }
       return await websocketFetch({
-        body: { name, sender: 'client', type: 'request-delete-instance' },
+        body: {
+          data: { name },
+          sender: 'client',
+          type: 'request-delete-instance',
+        },
         schema: DeleteInstanecResponseSchema,
         socket,
       });

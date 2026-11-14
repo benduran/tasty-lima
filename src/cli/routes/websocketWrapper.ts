@@ -1,7 +1,7 @@
 import type { WebSocketLike } from '@hono/node-server';
 import type { WSContext, WSMessageReceive } from 'hono/ws';
 import { errorToString } from '../../shared/error-to-string.ts';
-import type { WebSocketMessage } from '../../shared/types.ts';
+import type { LogLine, WebSocketMessage } from '../../shared/types.ts';
 import { responseNameOf, WebSocketMessageCodec } from '../../shared/types.ts';
 import {
   createInstance,
@@ -28,16 +28,25 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
             sender: 'server',
             type: 'response-heartbeat',
           });
-        case 'request-create-instance':
+        case 'request-create-instance': {
+          const handleSendLine = (data: LogLine) => {
+            send({
+              data,
+              requestId,
+              sender: 'server',
+              type: 'stream-instance-logs',
+            });
+          };
           return send({
-            data: await createInstance(parsed.createLimaVM),
+            data: await createInstance(parsed.data, handleSendLine),
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),
           });
+        }
         case 'request-delete-instance':
           return send({
-            data: { name: await deleteInstance(parsed.name) },
+            data: { name: await deleteInstance(parsed.data.name) },
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),

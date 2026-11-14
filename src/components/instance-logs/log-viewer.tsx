@@ -1,12 +1,5 @@
 import { cn } from '../../lib/utils.ts';
-
-export type LogLevel = 'error' | 'info' | 'warn';
-
-export type LogLine = {
-  level: LogLevel;
-  msg: string;
-  t: string;
-};
+import type { LogLevel, LogLine } from '../../shared/types.ts';
 
 const LEVEL_LABELS: Record<LogLevel, string> = {
   error: 'ERROR',
