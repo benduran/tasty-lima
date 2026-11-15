@@ -103,6 +103,9 @@ export function useVmSettings() {
   const [ram, setRam] = useNewVMStore('config.memory');
   const [mountType, setMountType] = useNewVMStore('config.mountType');
   const [disk, setDisk] = useNewVMStore('config.disk');
+  const [nestedVirtualization, setNestedVirtualization] = useNewVMStore(
+    'config.nestedVirtualization',
+  );
   const [portForwards, setPortForwards] = useNewVMStore('config.portForwards');
   const [provision, setProvision] = useNewVMStore('config.provision');
   const [ssh, setSSH] = useNewVMStore('config.ssh');
@@ -324,6 +327,11 @@ export function useVmSettings() {
     [setCpus],
   );
 
+  const onNestedVirtualizationChange = useCallback(
+    (checked: boolean) => setNestedVirtualization(checked || undefined),
+    [setNestedVirtualization],
+  );
+
   const setBaseFromTemplate = useCallback(
     (templateName: string) => setBase([{ url: templateLocator(templateName) }]),
     [setBase],
@@ -487,6 +495,7 @@ export function useVmSettings() {
     mountTypes,
     /** name */
     name,
+    nestedVirtualization: Boolean(nestedVirtualization),
     onAddMount,
     /** port overrides section */
     onAddPortForward,
@@ -507,6 +516,7 @@ export function useVmSettings() {
     onLoadDotSSHPubKeysChange,
     onMountTypeChange,
     onNameChange: setName,
+    onNestedVirtualizationChange,
     onRamMeterChange: setRamFromMeter,
     /** yaml editor */
     onRawYamlChange: setRawYaml,

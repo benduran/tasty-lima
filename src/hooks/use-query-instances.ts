@@ -7,7 +7,10 @@ export function createQueryKey() {
   return ['useQueryInstances'] as const;
 }
 
-export function useQueryInstances() {
+type UseQueryInstancesOpts = {
+  noRefetch?: boolean;
+};
+export function useQueryInstances(opts?: UseQueryInstancesOpts) {
   /** context */
   const { socket } = useClientSocket();
   return useQuery({
@@ -18,5 +21,6 @@ export function useQueryInstances() {
         socket,
       }),
     queryKey: createQueryKey(),
+    refetchInterval: opts?.noRefetch ? false : 5000,
   });
 }

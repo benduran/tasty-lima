@@ -27,6 +27,7 @@ export function VMSettingsForm() {
     mountTypes,
     mounts,
     name,
+    nestedVirtualization,
     onAddMount,
     onAddPortForward,
     onAddScript,
@@ -43,6 +44,7 @@ export function VMSettingsForm() {
     onLoadDotSSHPubKeysChange,
     onMountTypeChange,
     onNameChange: setName,
+    onNestedVirtualizationChange,
     onRawYamlChange,
     onRamMeterChange,
     onRemoveMount,
@@ -108,8 +110,10 @@ export function VMSettingsForm() {
               cpus={cpus}
               disk={disk}
               machineInfo={machineInfo}
+              nestedVirtualization={nestedVirtualization}
               onCpusChange={onCpusChange}
               onDiskMeterChange={onDiskMeterChange}
+              onNestedVirtualizationChange={onNestedVirtualizationChange}
               onRamMeterChange={onRamMeterChange}
               ram={ram}
             />

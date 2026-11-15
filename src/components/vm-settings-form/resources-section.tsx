@@ -1,4 +1,5 @@
 import type { MachineInfo, Nullish } from '../../shared/types.ts';
+import { CheckboxRow } from '../checkbox-row.tsx';
 import { CrtSection } from '../crt.tsx';
 import { ResourceMeter } from '../resource-meter.tsx';
 
@@ -6,8 +7,10 @@ type ResourcesSectionProps = {
   cpus: Nullish<number>;
   disk: Nullish<string>;
   machineInfo: Nullish<MachineInfo>;
+  nestedVirtualization: boolean;
   onCpusChange: (newVal: number) => void;
   onDiskMeterChange: (newVal: number) => void;
+  onNestedVirtualizationChange: (checked: boolean) => void;
   onRamMeterChange: (newVal: number) => void;
   ram: Nullish<string>;
 };
@@ -16,8 +19,10 @@ export function ResourcesSection({
   cpus,
   disk,
   machineInfo,
+  nestedVirtualization,
   onCpusChange,
   onDiskMeterChange,
+  onNestedVirtualizationChange,
   onRamMeterChange,
   ram,
 }: ResourcesSectionProps) {
@@ -68,6 +73,13 @@ export function ResourcesSection({
           </ResourceMeter>
         </div>
       </div>
+      <CheckboxRow
+        checked={nestedVirtualization}
+        className="gap-2.5"
+        hint="lets this VM run VMs of its own"
+        label="NESTED VIRTUALIZATION"
+        onCheckedChange={onNestedVirtualizationChange}
+      />
     </CrtSection>
   );
 }
