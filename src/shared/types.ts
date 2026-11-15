@@ -90,6 +90,13 @@ export const ShutdownInstanceRequestResponseSchema = z.object({
   name: z.string().nonempty(),
 });
 
+export const ResponseInstanceConnectCommandSchema = z.object({
+  command: z.string().nonempty(),
+});
+export type ResponseInstanceConnectCommand = z.infer<
+  typeof ResponseInstanceConnectCommandSchema
+>;
+
 export const InstanceOperationRequestSchema = z.enum([
   'request-boot-instance',
   'request-create-instance',
@@ -173,6 +180,18 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
     data: LimaTemplateSummarySchema.array(),
     sender: z.literal('server'),
     type: z.literal('response-query-public-templates'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: z.object({ name: z.string().nonempty() }),
+    sender: z.literal('client'),
+    type: z.literal('request-instance-connect-command'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: ResponseInstanceConnectCommandSchema,
+    sender: z.literal('server'),
+    type: z.literal('response-instance-connect-command'),
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
@@ -317,6 +336,7 @@ export const WsResponseMap = {
   'request-delete-instance': 'response-delete-instance',
   'request-edit-instance': 'response-edit-instance',
   'request-heartbeat': 'response-heartbeat',
+  'request-instance-connect-command': 'response-instance-connect-command',
   'request-query-instance': 'response-query-instance',
   'request-query-instance-operations': 'response-query-instance-operations',
   'request-query-instances': 'response-query-instances',

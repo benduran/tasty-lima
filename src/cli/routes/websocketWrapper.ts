@@ -13,6 +13,8 @@ import {
 } from '../instance-operations.ts';
 import {
   createInstance,
+  ensureLimaCtl,
+  getLimaBinaryPath,
   listInstances,
   listTemplates,
 } from '../limactl/index.ts';
@@ -133,6 +135,16 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
         case 'request-query-instance-operations':
           return send({
             data: listInstanceOperations(),
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
+        case 'request-instance-connect-command':
+          return send({
+            data: {
+              // ensureLimaCtl normally ran at startup; recover if it did not
+              command: `"${getLimaBinaryPath() || (await ensureLimaCtl())}" shell "${parsed.data.name}"`,
+            },
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),

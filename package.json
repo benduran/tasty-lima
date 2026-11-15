@@ -13,6 +13,7 @@
     "clsx": "2.1.1",
     "cmdk": "1.1.1",
     "command-exists": "1.2.9",
+    "copy-to-clipboard": "4.0.2",
     "date-fns": "4.4.0",
     "embla-carousel-react": "8.6.0",
     "execa": "10.2.1",
@@ -42,6 +43,7 @@
   },
   "description": "",
   "devDependencies": {
+    "@better-builds/lets-version": "1.6.5",
     "@better-builds/nodec": "2.1.1",
     "@biomejs/biome": "2.6.4",
     "@cprussin/tsconfig": "5.0.0",
@@ -92,5 +94,5 @@
     "test:types": "tsc --noEmit"
   },
   "type": "module",
-  "version": "0.0.1"
+  "version": "0.0.2-alpha.0"
 }

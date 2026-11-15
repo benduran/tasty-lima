@@ -1,12 +1,17 @@
 import {
+  CheckIcon,
+  EllipsisIcon,
   PencilIcon,
   PlayIcon,
   ScrollTextIcon,
   SquareStopIcon,
+  TerminalIcon,
   TrashIcon,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useBootInstance } from '../../hooks/use-boot-instance.ts';
+import { useCopyConnectCommand } from '../../hooks/use-copy-connect-command.ts';
 import { useDeleteInstance } from '../../hooks/use-delete-instance.ts';
 import { useInstanceOperation } from '../../hooks/use-instance-operation.ts';
 import { useShutdownInstance } from '../../hooks/use-shutdown-instance.ts';
@@ -17,14 +22,16 @@ import { useOpenLogsViewer } from '../../stores/new-vm-store.ts';
 import { OPERATION_LABELS } from '../instance-logs/operation-status.tsx';
 import { Button } from '../ui/button.tsx';
 import { ConfirmButton } from '../ui/confirm-button.tsx';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover.tsx';
 import { TableCell, TableRow } from '../ui/table.tsx';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip.tsx';
 
 export function InstanceRow({ vm }: { vm: LimaInstance }) {
   /** mutations */
   const { mutate: execDelete, isPending: isDeleting } = useDeleteInstance();
   const { mutate: execBoot } = useBootInstance();
   const { mutate: execShutdown } = useShutdownInstance();
+  const { isPending: isBuildingCommand, mutateAsync: copyConnectCommand } =
+    useCopyConnectCommand();
 
   /** queries */
   const operation = useInstanceOperation(vm.name);
@@ -33,6 +40,18 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
   const openLogsViewer = useOpenLogsViewer();
   const [, setLocation] = useLocation();
 
+  /** copied-command flash state */
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) {
+      return;
+    }
+
+    const timeout = setTimeout(() => setCopied(false), 3000);
+    return () => clearTimeout(timeout);
+  }, [copied]);
+
   const pending =
     operation && isNullOrUndefined(operation.finishedAt)
       ? OPERATION_LABELS[operation.request]
@@ -40,11 +59,9 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
   const stopping =
     !isNullOrUndefined(pending) &&
     operation?.request === 'request-shutdown-instance';
-  const deleteTooltip = `Delete ${vm.name}`;
-  const editTooltip = `Edit ${vm.name}`;
-  const logsTooltip = `Logs for ${vm.name}`;
-  const startTooltip = `Boot ${vm.name}`;
-  const stopTooltip = `Shutdown ${vm.name}`;
+  const moreTooltip = `More actions for ${vm.name}`;
+
+  const actionButtonClass = 'w-full justify-start';
 
   return (
     <TableRow>
@@ -56,105 +73,102 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
       <TableCell>{bytesToGb(vm.memory)}GiB</TableCell>
       <TableCell>{bytesToGb(vm.disk)}GiB</TableCell>
       <TableCell>
-        <div className="flex items-center flex-wrap gap-2">
-          {pending && (
-            <Button
-              aria-label={`${pending.pending} ${vm.name}`}
-              loading
-              size="sm"
-              variant="outline"
-            >
-              <PlayIcon />
-            </Button>
-          )}
-          {!pending && vm.status === 'Stopped' && (
-            <Tooltip>
-              <TooltipTrigger
-                render={
+        {pending ? (
+          <Button
+            aria-label={`${pending.pending} ${vm.name}`}
+            loading
+            size="sm"
+            variant="outline"
+          >
+            <PlayIcon />
+          </Button>
+        ) : (
+          <Popover>
+            <PopoverTrigger
+              render={
+                <Button aria-label={moreTooltip} size="sm" variant="outline">
+                  <EllipsisIcon />
+                </Button>
+              }
+            />
+            <PopoverContent align="end" className="w-52">
+              <div className="flex flex-col gap-1">
+                {vm.status === 'Stopped' && (
                   <Button
-                    aria-label={startTooltip}
+                    className={actionButtonClass}
                     onClick={() => execBoot({ name: vm.name })}
                     size="sm"
                     variant="outline"
                   >
                     <PlayIcon />
+                    Boot
                   </Button>
-                }
-              />
-              <TooltipContent>{startTooltip}</TooltipContent>
-            </Tooltip>
-          )}
-          {!stopping && vm.status === 'Running' && (
-            <Tooltip>
-              <TooltipTrigger
-                render={
+                )}
+                {!stopping && vm.status === 'Running' && (
                   <Button
-                    aria-label={stopTooltip}
+                    className={actionButtonClass}
                     onClick={() => execShutdown({ name: vm.name })}
                     size="sm"
                     variant="outline"
                   >
                     <SquareStopIcon />
+                    Shutdown
                   </Button>
-                }
-              />
-              <TooltipContent>{stopTooltip}</TooltipContent>
-            </Tooltip>
-          )}
-          <Tooltip>
-            <TooltipTrigger
-              render={
+                )}
                 <Button
-                  aria-label={editTooltip}
-                  disabled={Boolean(pending)}
+                  className={actionButtonClass}
                   onClick={() => setLocation(uiRoutes.editVm(vm.name))}
                   size="sm"
                   variant="outline"
                 >
                   <PencilIcon />
+                  Edit
                 </Button>
-              }
-            />
-            <TooltipContent>{editTooltip}</TooltipContent>
-          </Tooltip>
-          {operation && (
-            <Tooltip>
-              <TooltipTrigger
-                render={
+                {operation && (
                   <Button
-                    aria-label={logsTooltip}
+                    className={actionButtonClass}
                     onClick={() => openLogsViewer(vm.name)}
                     size="sm"
                     variant="outline"
                   >
                     <ScrollTextIcon />
+                    Logs
                   </Button>
-                }
-              />
-              <TooltipContent>{logsTooltip}</TooltipContent>
-            </Tooltip>
-          )}
-          <Tooltip>
-            <TooltipTrigger
-              render={
+                )}
+                <Button
+                  className={actionButtonClass}
+                  data-copied={copied || undefined}
+                  loading={isBuildingCommand}
+                  onClick={() => {
+                    copyConnectCommand({ name: vm.name })
+                      .then(() => setCopied(true))
+                      .catch(() => {
+                        /* failure toasts are handled globally */
+                      });
+                  }}
+                  size="sm"
+                  variant="outline"
+                >
+                  {copied ? <CheckIcon /> : <TerminalIcon />}
+                  {copied ? 'Copied' : 'Copy shell command'}
+                </Button>
                 <ConfirmButton
-                  aria-label={deleteTooltip}
+                  className={actionButtonClass}
                   confirmMessage={
                     <>Are you sure you want to delete {vm.name}?</>
                   }
-                  disabled={Boolean(pending)}
                   loading={isDeleting}
                   onConfirm={() => execDelete({ name: vm.name })}
                   size="sm"
                   variant="outline"
                 >
                   <TrashIcon />
+                  Delete
                 </ConfirmButton>
-              }
-            />
-            <TooltipContent>{deleteTooltip}</TooltipContent>
-          </Tooltip>
-        </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
       </TableCell>
     </TableRow>
   );
