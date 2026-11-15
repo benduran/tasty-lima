@@ -11,6 +11,7 @@ import type {
   LimaYAMLInput,
   LogLevel,
   LogLine,
+  Nullish,
 } from '../../shared/types.ts';
 import { LimaInstanceSchema } from '../../shared/types.ts';
 import { isObject } from '../../shared/util.ts';
@@ -87,6 +88,13 @@ export async function listInstances(): Promise<LimaInstance[]> {
   }
 
   return out;
+}
+
+export async function getInstanceByName(
+  name: string,
+): Promise<Nullish<LimaInstance>> {
+  const instances = await listInstances();
+  return instances.find(instance => instance.name === name);
 }
 
 export async function listTemplates(): Promise<LimaTemplateSummary[]> {
@@ -184,9 +192,7 @@ async function tolerateDegradedBoot(
   error: unknown,
   onLine?: (line: LogLine) => void,
 ) {
-  const instance = (await listInstances()).find(
-    candidate => candidate.name === name,
-  );
+  const instance = await getInstanceByName(name);
   if (instance?.status === 'Running') {
     onLine?.({
       level: 'warn',
@@ -231,9 +237,7 @@ export async function createInstance(
       }
     }
 
-    const created = (await listInstances()).find(
-      instance => instance.name === opts.name,
-    );
+    const created = await getInstanceByName(opts.name);
     if (!created) {
       throw new Error(
         `limactl reported success, but the instance ${opts.name} is not in its output`,
@@ -268,6 +272,14 @@ export async function shutdownInstance(
 }
 
 export async function deleteInstance(name: string) {
+  const instance = await getInstanceByName(name);
+  if (!instance) {
+    throw new Error(`unable to delete "${name}" because it doesn't exist`);
+  }
+  if (instance.status === 'Running') {
+    await shutdownInstance(name);
+  }
+
   await limaExec(['rm', name]);
   return name;
 }
