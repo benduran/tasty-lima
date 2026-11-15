@@ -27,7 +27,7 @@ export function LogViewer({ lines }: { lines: readonly LogLine[] }) {
       {lines.map(line => (
         <div
           className="grid grid-cols-[150px_72px_minmax(0,1fr)] gap-x-4 px-4 py-px hover:bg-phosphor-faint"
-          key={`${line.t} ${line.msg}`}
+          key={line.seq}
         >
           <span className="whitespace-nowrap text-phosphor-dim">
             {formatLogTime(line.t)}

@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { StringDecoder } from 'node:string_decoder';
 import { execa } from 'execa';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
@@ -20,8 +21,16 @@ import { logger } from '../logger.ts';
 import { getLimaBinaryPath } from './ensureLimaCtl.ts';
 import { getQemuPathDirs } from './ensureQemuLinux.ts';
 
-type OnChunkOpts = Partial<{
-  onChunk: (chunk: Buffer) => void;
+type LogLineSink = {
+  end: () => void;
+  note: (level: LogLevel, msg: string) => void;
+  write: (chunk: Buffer) => void;
+};
+
+type OnLogLines = (lines: LogLine[]) => void;
+
+type LimaExecOpts = Partial<{
+  sink: LogLineSink;
 }>;
 
 function limaChildEnv(): NodeJS.ProcessEnv {
@@ -32,7 +41,7 @@ function limaChildEnv(): NodeJS.ProcessEnv {
   };
 }
 
-async function limaExec(args: string[], opts?: OnChunkOpts) {
+async function limaExec(args: string[], opts?: LimaExecOpts) {
   const binPath = getLimaBinaryPath();
   if (!binPath) {
     throw new Error(
@@ -46,19 +55,22 @@ async function limaExec(args: string[], opts?: OnChunkOpts) {
     stdio: 'pipe',
   });
 
-  if (opts?.onChunk) {
-    child.all.on('data', opts.onChunk);
+  const sink = opts?.sink;
+  const onChunk = sink ? (chunk: Buffer) => sink.write(chunk) : undefined;
+  if (onChunk) {
+    child.all.on('data', onChunk);
   }
 
   const result = await child;
 
-  if (opts?.onChunk) {
-    child.all.off('data', opts.onChunk);
+  if (onChunk) {
+    child.all.off('data', onChunk);
+    sink?.end();
   }
 
   if (result.failed) {
     throw new Error(
-      `limactl ${args.join(' ')} exited with code ${result.exitCode ?? 'unknown'}: ${result.stderr}`,
+      `limactl ${args.join(' ')} exited with code ${result.exitCode ?? 'unknown'}: ${limactlFailureReason(result.stderr)}`,
     );
   }
   return result.stdout;
@@ -167,38 +179,173 @@ function limactlLogLevel(line: string): LogLevel {
   }
 }
 
-/** one interleaved chunk from limactl: split it into lines and stream each */
-function createHandleChunk(onLine?: (line: LogLine) => void) {
-  return (chunk: Buffer) => {
-    for (const msg of chunk.toString('utf-8').split('\n')) {
-      if (!msg) continue;
-      onLine?.({
-        level: limactlLogLevel(msg),
-        msg,
-        t: Date.now(),
-      });
-    }
+const LimactlJsonLineSchema = z.looseObject({
+  level: z.string(),
+  msg: z.string(),
+  time: z.string().optional(),
+});
+
+function levelFromLimactlJson(level: string): LogLevel {
+  switch (level) {
+    case 'error':
+    case 'fatal':
+    case 'panic':
+      return 'error';
+    case 'warn':
+    case 'warning':
+      return 'warn';
+    default:
+      return 'info';
+  }
+}
+
+function safeJsonParse(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
+type ParsedLimactlLine = {
+  dedupeKey: string | undefined;
+  level: LogLevel;
+  msg: string;
+  t: number;
+};
+
+function parseLimactlLine(raw: string): ParsedLimactlLine {
+  const parsed = LimactlJsonLineSchema.safeParse(safeJsonParse(raw));
+  if (!parsed.success) {
+    return {
+      dedupeKey: undefined,
+      level: limactlLogLevel(raw),
+      msg: raw,
+      t: Date.now(),
+    };
+  }
+
+  const { level, msg, time, ...fields } = parsed.data;
+  const extras = Object.entries(fields).map(
+    ([key, val]) =>
+      `${key}=${typeof val === 'string' ? val : JSON.stringify(val)}`,
+  );
+  const fullMsg = extras.length > 0 ? `${msg} (${extras.join(', ')})` : msg;
+  const parsedTime = time ? Date.parse(time) : Number.NaN;
+
+  return {
+    dedupeKey: `${time ?? ''}|${level}|${fullMsg}`,
+    level: levelFromLimactlJson(level),
+    msg: fullMsg,
+    t: Number.isNaN(parsedTime) ? Date.now() : parsedTime,
   };
 }
 
-/**
- * limactl exits non-zero when a boot ends up "degraded" (e.g. a boot script
- * failed) even though the VM itself came up. Only surface the failure when
- * the instance did not actually start; the degraded detail is already in the
- * streamed log lines.
- */
+function limactlFailureReason(stderr: string) {
+  const lines = stderr
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(parseLimactlLine);
+  const lastError = lines.findLast(line => line.level === 'error');
+  return (lastError ?? lines.at(-1))?.msg ?? 'no output';
+}
+
+function createLogLineSink(onLines?: OnLogLines): LogLineSink {
+  const decoder = new StringDecoder('utf8');
+  const seen = new Set<string>();
+  let pending = '';
+  let seq = 0;
+
+  const toLogLine = (level: LogLevel, msg: string, t: number): LogLine => {
+    seq += 1;
+    return { level, msg, seq, t };
+  };
+
+  const parseRaw = (raw: string): LogLine[] => {
+    const line = raw.replace(/\r$/, '');
+    if (!line.trim()) return [];
+    const parsed = parseLimactlLine(line);
+    if (parsed.dedupeKey !== undefined) {
+      if (seen.has(parsed.dedupeKey)) return [];
+      seen.add(parsed.dedupeKey);
+    }
+    return [toLogLine(parsed.level, parsed.msg, parsed.t)];
+  };
+
+  const emit = (lines: LogLine[]) => {
+    if (lines.length > 0) onLines?.(lines);
+  };
+
+  const consume = (text: string) => {
+    const rawLines = (pending + text).split('\n');
+    pending = rawLines.pop() ?? '';
+    emit(rawLines.flatMap(parseRaw));
+  };
+
+  return {
+    end: () => {
+      const rest = pending + decoder.end();
+      pending = '';
+      emit(rest.split('\n').flatMap(parseRaw));
+    },
+    note: (level, msg) => emit([toLogLine(level, msg, Date.now())]),
+    write: chunk => consume(decoder.write(chunk)),
+  };
+}
+
+const HostAgentStatusSchema = z.looseObject({
+  status: z
+    .looseObject({
+      degraded: z.boolean().optional(),
+      errors: z.array(z.string()).nullish(),
+      exiting: z.boolean().optional(),
+      running: z.boolean().optional(),
+    })
+    .optional(),
+});
+type HostAgentStatus = NonNullable<
+  z.infer<typeof HostAgentStatusSchema>['status']
+>;
+
+const HOST_AGENT_EVENTS_LOG = 'ha.stdout.log';
+
+async function readHostAgentStatus(
+  instanceDir: string,
+): Promise<HostAgentStatus | undefined> {
+  let contents: string;
+  try {
+    contents = await fs.readFile(
+      path.join(instanceDir, HOST_AGENT_EVENTS_LOG),
+      'utf-8',
+    );
+  } catch {
+    return undefined;
+  }
+  const lastEvent = contents
+    .split('\n')
+    .map(line => line.trim())
+    .findLast(Boolean);
+  if (!lastEvent) return undefined;
+  return HostAgentStatusSchema.safeParse(safeJsonParse(lastEvent)).data?.status;
+}
+
 async function tolerateDegradedBoot(
   name: string,
   error: unknown,
-  onLine?: (line: LogLine) => void,
+  sink: LogLineSink,
 ) {
   const instance = await getInstanceByName(name);
-  if (instance?.status === 'Running') {
-    onLine?.({
-      level: 'warn',
-      msg: `limactl reported a degraded boot, but the instance is running`,
-      t: Date.now(),
-    });
+  const status =
+    instance?.status === 'Running'
+      ? await readHostAgentStatus(instance.dir)
+      : undefined;
+  if (status?.running && status.degraded) {
+    const reasons = status.errors?.join('; ');
+    sink.note(
+      'warn',
+      `${name} is running, but booted in a degraded state${reasons ? `: ${reasons}` : ''}`,
+    );
     return;
   }
   throw error;
@@ -206,7 +353,7 @@ async function tolerateDegradedBoot(
 
 export async function createInstance(
   opts: CreateLimaVM,
-  onLine?: (line: LogLine) => void,
+  onLines?: OnLogLines,
 ): Promise<LimaInstance> {
   await fs.mkdir(TASTY_LIMA_TEMP, { recursive: true });
   const dir = await fs.mkdtemp(path.join(TASTY_LIMA_TEMP, 'create-vm-'));
@@ -222,16 +369,18 @@ export async function createInstance(
     logger.info(`creating lima instance ${opts.name}`, { configYaml });
     const args = [
       '--tty=false',
+      '--log-format=json',
       opts.startAfterCreate ? 'start' : 'create',
       configFile,
       `--name=${opts.name}`,
     ];
 
+    const sink = createLogLineSink(onLines);
     try {
-      await limaExec(args, { onChunk: createHandleChunk(onLine) });
+      await limaExec(args, { sink });
     } catch (error) {
       if (opts.startAfterCreate) {
-        await tolerateDegradedBoot(opts.name, error, onLine);
+        await tolerateDegradedBoot(opts.name, error, sink);
       } else {
         throw error;
       }
@@ -249,25 +398,23 @@ export async function createInstance(
   }
 }
 
-export async function bootInstance(
-  name: string,
-  onLine?: (line: LogLine) => void,
-) {
+export async function bootInstance(name: string, onLines?: OnLogLines) {
+  const sink = createLogLineSink(onLines);
   try {
-    await limaExec(['--tty=false', 'start', name], {
-      onChunk: createHandleChunk(onLine),
+    await limaExec(['--tty=false', '--log-format=json', 'start', name], {
+      sink,
     });
   } catch (error) {
-    await tolerateDegradedBoot(name, error, onLine);
+    await tolerateDegradedBoot(name, error, sink);
+    return { degraded: true, name };
   }
-  return name;
+  return { degraded: false, name };
 }
 
-export async function shutdownInstance(
-  name: string,
-  onLine?: (line: LogLine) => void,
-) {
-  await limaExec(['stop', name], { onChunk: createHandleChunk(onLine) });
+export async function shutdownInstance(name: string, onLines?: OnLogLines) {
+  await limaExec(['--tty=false', '--log-format=json', 'stop', name], {
+    sink: createLogLineSink(onLines),
+  });
   return name;
 }
 

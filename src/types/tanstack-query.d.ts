@@ -1,4 +1,5 @@
 import type {} from '@tanstack/react-query';
+import type { InstanceOperationRequest } from '../shared/types.ts';
 
 declare module '@tanstack/react-query' {
   // biome-ignore lint/style/useConsistentTypeDefinitions: module augmentation of Register requires an interface
@@ -17,6 +18,7 @@ declare module '@tanstack/react-query' {
        * Typed as `never` so any concrete variables type fits.
        */
       errorTitle?: string | ((variables: never) => string);
+      operation?: InstanceOperationRequest;
     };
   }
 }

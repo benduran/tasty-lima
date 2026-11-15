@@ -12,3 +12,7 @@ const store = new Tubular<InstanceLogsState>({
 
 export const useInstanceLogsStore = createUseTubular(store);
 export const useResetInstanceLogsStore = createUseTubularReset(store);
+
+export function clearInstanceLogs(name: string) {
+  store.update('logs', prev => ({ ...prev, [name]: [] }));
+}

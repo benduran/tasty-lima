@@ -4,10 +4,8 @@ import { useClientSocket } from '../providers/ClientSocketProvider.tsx';
 import type { CreateLimaVM } from '../shared/types.ts';
 import { CreateLimaVMSchema, LimaInstanceSchema } from '../shared/types.ts';
 import { websocketFetch } from '../shared/websocket-fetch.ts';
-import {
-  useCloseLogsViewer,
-  useOpenLogsViewer,
-} from '../stores/new-vm-store.ts';
+import { clearInstanceLogs } from '../stores/instance-logs-store.ts';
+import { useOpenLogsViewer } from '../stores/new-vm-store.ts';
 
 const MUTATION_KEY = ['useCreateInstance'] as const;
 
@@ -15,14 +13,15 @@ export function useCreateInstance() {
   /** context */
   const { socket } = useClientSocket();
   const openLogsViewer = useOpenLogsViewer();
-  const closeLogsViewer = useCloseLogsViewer();
 
   return useMutation({
     meta: {
       errorTitle: (opts: CreateLimaVM) => `Failed to create VM "${opts.name}"`,
+      operation: 'request-create-instance',
     },
     mutationFn: async (opts: CreateLimaVM) => {
       const validated = CreateLimaVMSchema.parse(opts);
+      clearInstanceLogs(validated.name);
       openLogsViewer(validated.name);
 
       return await websocketFetch({
@@ -37,8 +36,11 @@ export function useCreateInstance() {
     },
     mutationKey: MUTATION_KEY,
     onSuccess: (_data, opts) => {
-      toast.success(`VM "${opts.name}" created`);
-      closeLogsViewer();
+      toast.success(
+        opts.startAfterCreate
+          ? `VM "${opts.name}" created and running`
+          : `VM "${opts.name}" created`,
+      );
     },
   });
 }

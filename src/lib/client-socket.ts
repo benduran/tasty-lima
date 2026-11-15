@@ -11,6 +11,8 @@ function fullWebsocketUrl() {
   return `${wsProtocol}${host}${apiRoutes.websocket()}`;
 }
 
+const NON_RECONNECTING_CLOSE_CODES = new Set([1000, 1001, 1005]);
+
 type HandlerEntry = {
   handler: (data: WebSocketMessage) => void;
   type: WebSocketMessage['type'];
@@ -36,7 +38,6 @@ export class ClientSocket {
       onerror: this.errored,
       onmessage: this.receive,
       onopen: this.opened,
-      onreconnect: this.opened,
     });
   }
 
@@ -64,14 +65,14 @@ export class ClientSocket {
 
   on<E extends WebSocketMessage['type']>(
     type: E,
-    handler: (data: Extract<WebSocketMessage, E>) => void,
+    handler: (data: Extract<WebSocketMessage, { type: E }>) => void,
   ) {
     // @ts-expect-error - whatever, typescript
     this.handlers.push({ handler, type });
   }
   off<E extends WebSocketMessage['type']>(
     type: E,
-    handler: (data: Extract<WebSocketMessage, E>) => void,
+    handler: (data: Extract<WebSocketMessage, { type: E }>) => void,
   ) {
     this.handlers = this.handlers.filter(
       h => h.type !== type || h.handler !== handler,
@@ -80,7 +81,7 @@ export class ClientSocket {
 
   once<E extends WebSocketMessage['type']>(
     type: E,
-    handler: (data: Extract<WebSocketMessage, E>) => void,
+    handler: (data: Extract<WebSocketMessage, { type: E }>) => void,
   ) {
     // @ts-expect-error - whatever, typescript
     this.onceHandlers.push({ handler, type });
@@ -114,9 +115,13 @@ export class ClientSocket {
     this.pendingRequests.clear();
   }
 
-  private closed = () => {
-    this.rejectPending('WebSocket connection was closed');
+  private closed = (evt: CloseEvent) => {
+    this.state = 'closed';
     this.killHeartbeat();
+    this.rejectPending('WebSocket connection was closed');
+    if (NON_RECONNECTING_CLOSE_CODES.has(evt.code)) {
+      this.ws.reconnect();
+    }
   };
 
   private errored = () => {

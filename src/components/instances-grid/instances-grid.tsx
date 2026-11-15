@@ -1,11 +1,5 @@
-import { PlayIcon, SquareStopIcon, TrashIcon } from 'lucide-react';
-import { useBootInstance } from '../../hooks/use-boot-instance.ts';
-import { useDeleteInstance } from '../../hooks/use-delete-instance.ts';
-import { useShutdownInstance } from '../../hooks/use-shutdown-instance.ts';
 import type { LimaInstance, Nullish } from '../../shared/types.ts';
-import { arrayHasItems, bytesToGb } from '../../shared/util.ts';
-import { Button } from '../ui/button.tsx';
-import { ConfirmButton } from '../ui/confirm-button.tsx';
+import { arrayHasItems } from '../../shared/util.ts';
 import { Skeleton } from '../ui/skeleton.tsx';
 import {
   Table,
@@ -15,9 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table.tsx';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip.tsx';
 import { COLS_COUNT } from './constants.ts';
 import { EmptyGrid } from './empty-grid.tsx';
+import { InstanceRow } from './instance-row.tsx';
 
 type InstancesGridProps = {
   instances: Nullish<LimaInstance[]>;
@@ -25,25 +19,6 @@ type InstancesGridProps = {
 };
 
 export function InstancesGrid({ instances, loading }: InstancesGridProps) {
-  /** mutations */
-  const {
-    mutate: execDelete,
-    isPending: isDeleting,
-    variables: deletionVariables,
-  } = useDeleteInstance();
-
-  const {
-    mutate: execBoot,
-    isPending: isBooting,
-    variables: bootingVariable,
-  } = useBootInstance();
-
-  const {
-    mutate: execShutdown,
-    isPending: isShuttingDown,
-    variables: shutdownVariable,
-  } = useShutdownInstance();
-
   return (
     <Table>
       <TableHeader>
@@ -69,89 +44,7 @@ export function InstancesGrid({ instances, loading }: InstancesGridProps) {
           ))}
         {!loading && !arrayHasItems(instances) && <EmptyGrid />}
         {arrayHasItems(instances) &&
-          instances?.map(vm => {
-            const deleteTooltip = `Delete ${vm.name}`;
-            const startTooltip = `Boot ${vm.name}`;
-            const stopTooltip = `Shutdown ${vm.name}`;
-
-            return (
-              <TableRow key={vm.name}>
-                <TableCell className="text-[23px]">{vm.name}</TableCell>
-                <TableCell>{vm.status}</TableCell>
-                <TableCell>{vm.config?.os}</TableCell>
-                <TableCell>{vm.arch}</TableCell>
-                <TableCell>{vm.cpus}</TableCell>
-                <TableCell>{bytesToGb(vm.memory)}GiB</TableCell>
-                <TableCell>{bytesToGb(vm.disk)}GiB</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {vm.status === 'Stopped' && (
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <Button
-                              aria-label={startTooltip}
-                              loading={
-                                isBooting && bootingVariable.name === vm.name
-                              }
-                              onClick={() => execBoot({ name: vm.name })}
-                              size="sm"
-                              variant="outline"
-                            >
-                              <PlayIcon />
-                            </Button>
-                          }
-                        />
-                        <TooltipContent>{startTooltip}</TooltipContent>
-                      </Tooltip>
-                    )}
-                    {vm.status === 'Running' && (
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <Button
-                              aria-label={stopTooltip}
-                              loading={
-                                isShuttingDown &&
-                                shutdownVariable.name === vm.name
-                              }
-                              onClick={() => execShutdown({ name: vm.name })}
-                              size="sm"
-                              variant="outline"
-                            >
-                              <SquareStopIcon />
-                            </Button>
-                          }
-                        />
-                        <TooltipContent>{stopTooltip}</TooltipContent>
-                      </Tooltip>
-                    )}
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <ConfirmButton
-                            aria-label={deleteTooltip}
-                            confirmMessage={
-                              <>Are you sure you want to delete {vm.name}?</>
-                            }
-                            loading={
-                              isDeleting && deletionVariables.name === vm.name
-                            }
-                            onConfirm={() => execDelete({ name: vm.name })}
-                            size="sm"
-                            variant="outline"
-                          >
-                            <TrashIcon />
-                          </ConfirmButton>
-                        }
-                      />
-                      <TooltipContent>{deleteTooltip}</TooltipContent>
-                    </Tooltip>
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          instances?.map(vm => <InstanceRow key={vm.name} vm={vm} />)}
       </TableBody>
     </Table>
   );

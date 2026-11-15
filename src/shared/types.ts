@@ -14,6 +14,7 @@ export type LogLevel = z.infer<typeof LogLevelSchema>;
 export const LogLineSchema = z.object({
   level: LogLevelSchema,
   msg: z.string(),
+  seq: z.int(),
   t: z.union([z.int(), z.string(), z.date()]),
 });
 
@@ -66,8 +67,10 @@ export const MachineInfoSchema = z.object({
 });
 export type MachineInfo = z.infer<typeof MachineInfoSchema>;
 
+export const RequestIdSchema = z.uuidv4();
+
 const BaseWebsocketSchema = z.object({
-  requestId: z.uuidv4(),
+  requestId: RequestIdSchema,
 });
 
 export const DeleteInstanecResponseSchema = z.object({
@@ -75,6 +78,7 @@ export const DeleteInstanecResponseSchema = z.object({
 });
 
 export const BootInstanceRequestResponseSchema = z.object({
+  degraded: z.boolean(),
   name: z.string().nonempty(),
 });
 
@@ -158,7 +162,10 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
-    data: LogLineSchema,
+    data: z.object({
+      lines: LogLineSchema.array(),
+      name: z.string().nonempty(),
+    }),
     sender: z.literal('server'),
     type: z.literal('stream-instance-logs'),
   }),
@@ -240,6 +247,13 @@ export type WsResponseType = typeof WsResponseMap;
 
 /** request message names, verified by WsResponseTypeShape to pair with a response */
 export type WsRequestMessageName = keyof WsResponseType;
+
+export type InstanceOperationRequest = Extract<
+  WsRequestMessageName,
+  | 'request-boot-instance'
+  | 'request-create-instance'
+  | 'request-shutdown-instance'
+>;
 
 /**
  * Request bodies as callers build them: a WsRequestMessage without a
