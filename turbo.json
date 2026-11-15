@@ -2,16 +2,23 @@
   "$schema": "https://turborepo.dev/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": ["build:ui", "build:cli"],
+      "dependsOn": [
+        "build:ui",
+        "build:cli"
+      ],
       "description": "Build the UI and the CLI for the current machine"
     },
     "build:all": {
-      "dependsOn": ["build:cli:all"],
+      "dependsOn": [
+        "build:cli:all"
+      ],
       "description": "Build the UI, then ALL CLI targets"
     },
     "build:cli": {
       "cache": false,
-      "dependsOn": ["build:ui"],
+      "dependsOn": [
+        "build:ui"
+      ],
       "description": "nodec bundle for the host platform (runs after build:ui so dist/ exists for embedding); uncached while all targets write ./tasty-lima — make cacheable once each target gets its own --outDir"
     },
     "build:cli:all": {
@@ -27,27 +34,51 @@
     },
     "build:cli:linux:arm64": {
       "cache": false,
-      "dependsOn": ["build:ui", "gen:constants", "gen:lima-types"]
+      "dependsOn": [
+        "build:ui",
+        "gen:constants",
+        "gen:lima-types"
+      ]
     },
     "build:cli:linux:arm64-musl": {
       "cache": false,
-      "dependsOn": ["build:ui", "gen:constants", "gen:lima-types"]
+      "dependsOn": [
+        "build:ui",
+        "gen:constants",
+        "gen:lima-types"
+      ]
     },
     "build:cli:linux:x64": {
       "cache": false,
-      "dependsOn": ["build:ui", "gen:constants", "gen:lima-types"]
+      "dependsOn": [
+        "build:ui",
+        "gen:constants",
+        "gen:lima-types"
+      ]
     },
     "build:cli:linux:x64-musl": {
       "cache": false,
-      "dependsOn": ["build:ui", "gen:constants", "gen:lima-types"]
+      "dependsOn": [
+        "build:ui",
+        "gen:constants",
+        "gen:lima-types"
+      ]
     },
     "build:cli:mac:arm64": {
       "cache": false,
-      "dependsOn": ["build:ui", "gen:constants", "gen:lima-types"]
+      "dependsOn": [
+        "build:ui",
+        "gen:constants",
+        "gen:lima-types"
+      ]
     },
     "build:cli:win:x64": {
       "cache": false,
-      "dependsOn": ["build:ui", "gen:constants", "gen:lima-types"]
+      "dependsOn": [
+        "build:ui",
+        "gen:constants",
+        "gen:lima-types"
+      ]
     },
     "build:ui": {
       "description": "vite build -> dist/",
@@ -58,21 +89,31 @@
         "tsconfig.json",
         "components.json"
       ],
-      "outputs": ["dist/**"]
+      "outputs": [
+        "dist/**"
+      ]
     },
     "dev": {
       "description": "Boot the UI dev server and the CLI helper together",
-      "with": ["dev:ui", "dev:cli"]
+      "with": [
+        "dev:ui",
+        "dev:cli"
+      ]
     },
     "dev:cli": {
       "cache": false,
-      "dependsOn": ["gen:constants", "gen:lima-types"],
+      "dependsOn": [
+        "gen:constants",
+        "gen:lima-types"
+      ],
       "description": "tsx watch of the CLI entrypoint (persistent)",
       "persistent": true
     },
     "dev:ui": {
       "cache": false,
-      "dependsOn": ["gen:constants"],
+      "dependsOn": [
+        "gen:constants"
+      ],
       "description": "Vite dev server (persistent)",
       "persistent": true
     },
@@ -83,6 +124,17 @@
     "gen:constants": {
       "cache": false
     },
+    "gen:fake-fs": {
+      "dependsOn": [
+        "build:ui"
+      ],
+      "inputs": [
+        "dist/**"
+      ],
+      "outputs": [
+        "src/cli/fake-fs/content.gen.ts"
+      ]
+    },
     "gen:lima-types": {
       "cache": false
     },
@@ -92,7 +144,10 @@
       "persistent": true
     },
     "test": {
-      "dependsOn": ["test:lint", "test:types"],
+      "dependsOn": [
+        "test:lint",
+        "test:types"
+      ],
       "description": "Lint AND typecheck"
     },
     "test:lint": {

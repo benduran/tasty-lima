@@ -147,3 +147,4 @@ vite.config.ts.timestamp-*
 .turbo/
 src/shared/limactl-types.gen.ts
 src/shared/constants.gen.ts
+src/cli/fake-fs/content.gen.ts

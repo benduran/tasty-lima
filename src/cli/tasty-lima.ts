@@ -32,7 +32,7 @@ async function setup() {
   const args = CLIArgsSchema.parse(rest);
 
   await ensureLimaCtl();
-  startServer(args);
+  await startServer(args);
 }
 
 void setup();

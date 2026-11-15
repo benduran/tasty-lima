@@ -7,10 +7,10 @@ import { bindAll } from './routes/index.ts';
 import type { CLIArgs } from './schema.ts';
 
 // TODO: need to actually do something with the no UI flag, eventually
-export function startServer({ hostname, noUI: _, port }: CLIArgs) {
+export async function startServer({ hostname, noUI, port }: CLIArgs) {
   const server = new Hono();
 
-  bindAll(server);
+  await bindAll(server, { noUI });
 
   const wss = new WebSocketServer({ noServer: true });
 
