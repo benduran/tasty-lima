@@ -418,6 +418,18 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
     [selectedTemplate, setBaseFromTemplate, setVmType],
   );
 
+  const onTemplateSelect = useCallback(
+    (templateName: string) => {
+      setBaseFromTemplate(templateName);
+      if (templateName === WSL2_TEMPLATE_NAME) {
+        setVmType('wsl2');
+      } else if (vmType === 'wsl2') {
+        setVmType('qemu');
+      }
+    },
+    [setBaseFromTemplate, setVmType, vmType],
+  );
+
   const onMountTypeChange = useCallback(
     (value: string) => {
       if (value === 'auto') {
@@ -590,7 +602,7 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
     onRemovePortForward,
     onRemoveScript,
     onSSHLocalPortChange,
-    onTemplateSelect: setBaseFromTemplate,
+    onTemplateSelect,
     onUserNameChange,
     onVmTypeChange,
     portForwards: portForwards ?? [],

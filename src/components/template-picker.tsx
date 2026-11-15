@@ -21,14 +21,11 @@ function templateUnavailableReason(
   }
 
   if (name === 'experimental/wsl2') {
-    if (machineInfo.platform !== 'win32') {
-      return 'needs a Windows host';
-    }
-    /** the WSL2 driver only boots rootfs tarballs */
-    return vmType === 'wsl2' ? null : 'needs the WSL2 VM type';
+    return machineInfo.platform === 'win32' ? null : 'needs a Windows host';
   }
 
-  return null;
+  /** the WSL2 driver only boots rootfs tarballs */
+  return vmType === 'wsl2' ? 'switches the VM type to QEMU' : null;
 }
 
 type TemplatePickerProps = {
@@ -55,7 +52,9 @@ export function TemplatePicker({
   const options = useMemo<AutocompleteItem<string>[]>(
     () =>
       templates
-        ?.filter(t => showExperimental || !t.experimental)
+        ?.filter(
+          t => showExperimental || !t.experimental || t.name === selected,
+        )
         .map(t => {
           const unavailableReason = templateUnavailableReason(
             t.name,
@@ -78,7 +77,7 @@ export function TemplatePicker({
             value: t.name,
           };
         }) ?? [],
-    [templates, showExperimental, machineInfo, vmType],
+    [templates, showExperimental, machineInfo, vmType, selected],
   );
 
   const selectedOpt = useMemo(() => {
