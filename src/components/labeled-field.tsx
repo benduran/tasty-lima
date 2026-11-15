@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { cn } from '../lib/utils.ts';
+import { isNullOrUndefined } from '../shared/util.ts';
 
 export function LabeledField({
   children,
@@ -21,7 +22,7 @@ export function LabeledField({
         {label}
       </label>
       {children}
-      {message != null && <p id={messageId}>{message}</p>}
+      {!isNullOrUndefined(message) && <p id={messageId}>{message}</p>}
     </div>
   );
 }

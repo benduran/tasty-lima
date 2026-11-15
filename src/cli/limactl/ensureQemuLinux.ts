@@ -4,6 +4,7 @@ import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { execa } from 'execa';
 import { errorToString } from '../../shared/error-to-string.ts';
+import { isNullOrUndefined } from '../../shared/util.ts';
 import { TASTY_LIMA_CACHE } from '../constants.ts';
 import { logger } from '../logger.ts';
 import { fileExists } from './util.ts';
@@ -311,7 +312,7 @@ function parseOsRelease(text: string): Record<string, string> {
   const fields: Record<string, string> = {};
   for (const line of text.split('\n')) {
     const match = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
-    if (!match?.[1] || match[2] === undefined) continue;
+    if (!match?.[1] || isNullOrUndefined(match[2])) continue;
     fields[match[1]] = match[2].replace(/^(["'])(.*)\1$/, '$2');
   }
   return fields;
@@ -320,7 +321,7 @@ function parseOsRelease(text: string): Record<string, string> {
 async function readOsRelease(): Promise<Record<string, string>> {
   for (const file of ['/etc/os-release', '/usr/lib/os-release']) {
     const text = await fs.readFile(file, 'utf8').catch(() => undefined);
-    if (text !== undefined) return parseOsRelease(text);
+    if (!isNullOrUndefined(text)) return parseOsRelease(text);
   }
   return {};
 }

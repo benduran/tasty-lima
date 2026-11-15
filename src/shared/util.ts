@@ -119,9 +119,10 @@ export function byteSizeToBytes(size: Nullish<string>) {
   if (!match) return null;
 
   const magnitude = Number.parseFloat(match[1] ?? '');
-  const unitBytes =
-    match[2] === undefined ? undefined : BYTES_PER_UNIT[match[2].toLowerCase()];
-  if (!Number.isFinite(magnitude) || unitBytes === undefined) return null;
+  const unitBytes = isNullOrUndefined(match[2])
+    ? undefined
+    : BYTES_PER_UNIT[match[2].toLowerCase()];
+  if (!Number.isFinite(magnitude) || isNullOrUndefined(unitBytes)) return null;
 
   return magnitude * unitBytes;
 }

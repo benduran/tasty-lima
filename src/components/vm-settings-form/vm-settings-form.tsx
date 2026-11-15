@@ -28,6 +28,7 @@ export function VMSettingsForm({ vmToEdit }: VMSettingsFormProps) {
     disk,
     editing,
     machineInfo,
+    mountHostHome,
     mountType,
     mountTypes,
     mounts,
@@ -47,6 +48,7 @@ export function VMSettingsForm({ vmToEdit }: VMSettingsFormProps) {
     onFormSubmit,
     onForwardAgentChange,
     onLoadDotSSHPubKeysChange,
+    onMountHostHomeChange,
     onMountTypeChange,
     onNameChange: setName,
     onNestedVirtualizationChange,
@@ -137,11 +139,13 @@ export function VMSettingsForm({ vmToEdit }: VMSettingsFormProps) {
               ram={ram}
             />
             <MountsSection
+              mountHostHome={mountHostHome}
               mounts={mounts}
               mountType={mountType}
               mountTypes={mountTypes}
               onAddMount={onAddMount}
               onChangeMount={onChangeMount}
+              onMountHostHomeChange={onMountHostHomeChange}
               onMountTypeChange={onMountTypeChange}
               onRemoveMount={onRemoveMount}
             />

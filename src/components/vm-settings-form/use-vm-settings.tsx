@@ -219,6 +219,19 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
     [setMounts],
   );
 
+  const mountHostHome = (mounts ?? []).some(mount => mount.location === '~');
+
+  const onMountHostHomeChange = useCallback(
+    (checked: boolean) =>
+      setMounts(prev => {
+        const existing = prev ?? [];
+        return checked
+          ? [{ location: '~' }, ...existing]
+          : existing.filter(mount => mount.location !== '~');
+      }),
+    [setMounts],
+  );
+
   const onAddPortForward = useCallback(
     () => setPortForwards(prev => [...(prev ?? []), {}]),
     [setPortForwards],
@@ -540,8 +553,9 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
     editing,
     isCreating,
     machineInfo,
-    mounts: mounts ?? [],
     /** mounts section */
+    mountHostHome,
+    mounts: mounts ?? [],
     mountType,
     mountTypes,
     /** name */
@@ -565,6 +579,7 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
     /** ssh section */
     onForwardAgentChange,
     onLoadDotSSHPubKeysChange,
+    onMountHostHomeChange,
     onMountTypeChange,
     onNameChange: setName,
     onNestedVirtualizationChange,

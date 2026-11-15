@@ -4,6 +4,7 @@ import type {
   InstanceOperationRequest,
 } from '../../shared/types.ts';
 import { BootInstanceRequestResponseSchema } from '../../shared/types.ts';
+import { isNullOrUndefined } from '../../shared/util.ts';
 import { CrtCursor } from '../crt.tsx';
 
 export const OPERATION_LABELS: Record<
@@ -31,8 +32,8 @@ function isDegraded(operation: InstanceOperation) {
 
 export function operationHeaderLabel(operation: InstanceOperation) {
   const labels = OPERATION_LABELS[operation.request];
-  if (operation.finishedAt === undefined) return `${labels.pending}...`;
-  if (operation.error !== undefined) return `${labels.verb} FAILED`;
+  if (isNullOrUndefined(operation.finishedAt)) return `${labels.pending}...`;
+  if (!isNullOrUndefined(operation.error)) return `${labels.verb} FAILED`;
   return isDegraded(operation)
     ? `${labels.verb} FINISHED (DEGRADED)`
     : `${labels.verb} FINISHED`;
@@ -43,7 +44,8 @@ export function OperationStatus({
 }: {
   operation: InstanceOperation | undefined;
 }) {
-  const pending = operation !== undefined && operation.finishedAt === undefined;
+  const pending =
+    !isNullOrUndefined(operation) && isNullOrUndefined(operation.finishedAt);
   const now = useNow(pending);
 
   if (!operation) {
@@ -69,7 +71,7 @@ export function OperationStatus({
     );
   }
 
-  if (operation.error !== undefined) {
+  if (!isNullOrUndefined(operation.error)) {
     return (
       <div className="mx-4 mt-2 mb-1 bg-primary px-2 py-1 text-primary-foreground text-shadow-none">
         <p>

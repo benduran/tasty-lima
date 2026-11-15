@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '../lib/utils.ts';
+import { isNullOrUndefined } from '../shared/util.ts';
 import { Button } from './ui/button.tsx';
 
 export type PressItem = {
@@ -31,8 +32,9 @@ export function PressButtonGroup({
       role="group"
     >
       {items.map(item => {
-        const pressed =
-          value == null ? item.selected === true : item.id === value;
+        const pressed = isNullOrUndefined(value)
+          ? item.selected === true
+          : item.id === value;
         return (
           <Button
             aria-pressed={pressed}
@@ -43,7 +45,7 @@ export function PressButtonGroup({
             variant={pressed ? 'default' : 'outline'}
           >
             {item.label}
-            {item.count != null && <> {item.count}</>}
+            {!isNullOrUndefined(item.count) && <> {item.count}</>}
           </Button>
         );
       })}

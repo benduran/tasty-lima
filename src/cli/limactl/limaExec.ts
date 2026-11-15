@@ -16,7 +16,12 @@ import type {
   Nullish,
 } from '../../shared/types.ts';
 import { LimaFilenames, LimaInstanceSchema } from '../../shared/types.ts';
-import { byteSizeToBytes, isObject, safeJsonParse } from '../../shared/util.ts';
+import {
+  byteSizeToBytes,
+  isNullOrUndefined,
+  isObject,
+  safeJsonParse,
+} from '../../shared/util.ts';
 import { TASTY_LIMA_TEMP } from '../constants.ts';
 import { logger } from '../logger.ts';
 import { getLimaBinaryPath } from './ensureLimaCtl.ts';
@@ -132,20 +137,34 @@ const FilledHomeAndMountsSchema = z.object({
   user: z.object({ home: z.string().nullish() }).nullish(),
 });
 
-async function withNonCollidingGuestHome(
+async function copyConfigOnDisk(
   configFile: string,
-  config: LimaYAMLInput,
-): Promise<LimaYAMLInput> {
-  if (config.user?.home) return config;
+  mode: '--embed-all' | '--fill',
+) {
+  return await limaExec(['tmpl', 'copy', mode, configFile, '-']);
+}
 
-  const filled = FilledHomeAndMountsSchema.parse(
-    parseYaml(await limaExec(['tmpl', 'copy', '--fill', configFile, '-'])),
+async function resolveConfigOnDisk(
+  configFile: string,
+  original: LimaYAMLInput,
+): Promise<string> {
+  const resolved: LimaYAMLInput = {
+    ...LimaYAMLInputCodec.decode(
+      await copyConfigOnDisk(configFile, '--embed-all'),
+    ),
+    mounts: original.mounts ?? [],
+  };
+  const resolvedYaml = LimaYAMLInputCodec.encode(resolved);
+  if (original.user?.home) return resolvedYaml;
+
+  await fs.writeFile(configFile, resolvedYaml);
+  const { mounts, user } = FilledHomeAndMountsSchema.parse(
+    parseYaml(await copyConfigOnDisk(configFile, '--fill')),
   );
-  const guestHome = filled.user?.home;
-  if (!guestHome) return config;
-
-  const collides = filled.mounts?.some(mount => mount.mountPoint === guestHome);
-  if (!collides) return config;
+  const guestHome = user?.home;
+  if (!guestHome || !mounts?.some(mount => mount.mountPoint === guestHome)) {
+    return resolvedYaml;
+  }
 
   const home = path.posix.join(
     path.posix.dirname(guestHome),
@@ -155,7 +174,10 @@ async function withNonCollidingGuestHome(
     guestHome,
     home,
   });
-  return { ...config, user: { ...config.user, home } };
+  return LimaYAMLInputCodec.encode({
+    ...resolved,
+    user: { ...resolved.user, home },
+  });
 }
 
 /**
@@ -255,7 +277,7 @@ function createLogLineSink(onLines?: OnLogLines): LogLineSink {
     const line = raw.replace(/\r$/, '');
     if (!line.trim()) return [];
     const parsed = parseLimactlLine(line);
-    if (parsed.dedupeKey !== undefined) {
+    if (!isNullOrUndefined(parsed.dedupeKey)) {
       if (seen.has(parsed.dedupeKey)) return [];
       seen.add(parsed.dedupeKey);
     }
@@ -356,9 +378,7 @@ export async function createInstance(
     const configFile = path.join(dir, LimaFilenames.LimaYAML);
     await fs.writeFile(configFile, LimaYAMLInputCodec.encode(opts.config));
 
-    const configYaml = LimaYAMLInputCodec.encode(
-      await withNonCollidingGuestHome(configFile, opts.config),
-    );
+    const configYaml = await resolveConfigOnDisk(configFile, opts.config);
     await fs.writeFile(configFile, configYaml);
 
     logger.info(`creating lima instance ${opts.name}`, { configYaml });
@@ -436,6 +456,11 @@ export async function editInstance(
   await withTempDir('edit-vm-', async dir => {
     const configFile = path.join(dir, LimaFilenames.LimaYAML);
     await fs.writeFile(configFile, LimaYAMLInputCodec.encode(config));
+    await fs.writeFile(
+      configFile,
+      await resolveConfigOnDisk(configFile, config),
+    );
+
     await limaExec(
       ['--tty=false', '--log-format=json', 'tmpl', 'validate', configFile],
       { sink: createLogLineSink(onLines) },
