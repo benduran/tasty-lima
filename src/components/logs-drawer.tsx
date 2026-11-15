@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'wouter';
 import { useInstanceOperation } from '../hooks/use-instance-operation.ts';
-import { useClientSocket } from '../providers/ClientSocketProvider.tsx';
-import type { WebSocketMessage } from '../shared/types.ts';
-import { useInstanceLogsStore } from '../stores/instance-logs-store.ts';
+import { isNullOrUndefined } from '../shared/util.ts';
 import {
   LOG_VIEWER_QUERY_PARAM,
   useCloseLogsViewer,
@@ -17,10 +15,6 @@ import {
 import { Drawer, DrawerContent } from './ui/drawer.tsx';
 
 export function LogsDrawer() {
-  /** store */
-  const { socket } = useClientSocket();
-  const [logsMap, setLogsMap] = useInstanceLogsStore('logs');
-
   /** routing */
   const [search] = useSearchParams();
   const vmName = search.get(LOG_VIEWER_QUERY_PARAM);
@@ -32,35 +26,13 @@ export function LogsDrawer() {
   /** refs */
   const endRef = useRef<HTMLDivElement>(null);
 
-  /** memos */
-  const logs = useMemo(
-    () => (vmName ? (logsMap?.[vmName] ?? []) : []),
-    [logsMap, vmName],
-  );
-
   /** effects */
+  const lineCount = operation?.lines.length ?? 0;
+  const finishedAt = operation?.finishedAt;
   useEffect(() => {
-    const handler = (
-      msg: Extract<WebSocketMessage, { type: 'stream-instance-logs' }>,
-    ) => {
-      setLogsMap(prev => ({
-        ...prev,
-        [msg.data.name]: [...(prev?.[msg.data.name] ?? []), ...msg.data.lines],
-      }));
-    };
-
-    socket.on('stream-instance-logs', handler);
-
-    return () => {
-      socket.off('stream-instance-logs', handler);
-    };
-  }, [socket, setLogsMap]);
-
-  const status = operation?.state.status;
-  useEffect(() => {
-    if (logs.length === 0 && !status) return;
+    if (lineCount === 0 && isNullOrUndefined(finishedAt)) return;
     endRef.current?.scrollIntoView({ block: 'end' });
-  }, [logs.length, status]);
+  }, [lineCount, finishedAt]);
 
   return (
     <Drawer
@@ -77,8 +49,8 @@ export function LogsDrawer() {
           title={<>Logs for {vmName}</>}
         >
           <div aria-label="Log output" aria-live="polite" role="log">
-            <LogViewer lines={logs} />
-            <OperationStatus name={vmName ?? ''} operation={operation} />
+            <LogViewer lines={operation?.lines ?? []} />
+            <OperationStatus operation={operation} />
             <div ref={endRef} />
           </div>
         </CrtSection>

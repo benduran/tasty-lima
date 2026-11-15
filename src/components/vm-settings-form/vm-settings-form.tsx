@@ -1,4 +1,5 @@
 import { PressButtonGroup } from '../press-button-group.tsx';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert.tsx';
 import { Button } from '../ui/button.tsx';
 import { ImageSection } from './image-section.tsx';
 import { MountsSection } from './mounts-section.tsx';
@@ -6,6 +7,7 @@ import { PortOverridesSection } from './port-overrides-section.tsx';
 import { ProvisionScriptsSection } from './provision-scripts-section.tsx';
 import { ResourcesSection } from './resources-section.tsx';
 import { SshSection } from './ssh-section.tsx';
+import type { UseVmSettingsOpts } from './use-vm-settings.tsx';
 import { useVmSettings } from './use-vm-settings.tsx';
 import {
   RawYamlSection,
@@ -13,7 +15,9 @@ import {
   YamlValidationSection,
 } from './yaml-sections.tsx';
 
-export function VMSettingsForm() {
+type VMSettingsFormProps = UseVmSettingsOpts;
+
+export function VMSettingsForm({ vmToEdit }: VMSettingsFormProps) {
   /** hooks */
   const {
     arch,
@@ -22,6 +26,7 @@ export function VMSettingsForm() {
     cpus,
     currentMachineArch,
     disk,
+    editing,
     machineInfo,
     mountType,
     mountTypes,
@@ -65,10 +70,23 @@ export function VMSettingsForm() {
     templatesPending,
     user,
     vmType,
+    vmToEditMissing,
+    vmToEditRunning,
     vmTypes,
     yamlError,
     vzOff,
-  } = useVmSettings();
+  } = useVmSettings({ vmToEdit });
+
+  if (vmToEditMissing) {
+    return (
+      <Alert variant="default">
+        <AlertTitle>VM missing</AlertTitle>
+        <AlertDescription>
+          No instance named "{vmToEdit}" exists.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <form
@@ -93,6 +111,7 @@ export function VMSettingsForm() {
             <ImageSection
               arch={arch}
               currentMachineArch={currentMachineArch}
+              editing={editing}
               machineInfo={machineInfo}
               name={name}
               onArchChange={onArchChange}
@@ -149,7 +168,7 @@ export function VMSettingsForm() {
           </>
         ) : (
           <>
-            <YamlNameSection name={name} onNameChange={setName} />
+            {!editing && <YamlNameSection name={name} onNameChange={setName} />}
             <YamlValidationSection error={yamlError} />
             <RawYamlSection
               onRawYamlChange={onRawYamlChange}
@@ -160,14 +179,20 @@ export function VMSettingsForm() {
       </div>
 
       <div className="flex items-center justify-end gap-4 shrink-0">
+        {vmToEditRunning && (
+          <p className="mr-auto text-phosphor-dim">
+            {name} is currently running. It will be automatically shut down when
+            you save any changes.
+          </p>
+        )}
         <Button onClick={onCancel} type="button" variant="outline">
           Cancel
         </Button>
         <Button disabled={!canCreate} type="submit">
-          Create
+          {editing ? 'Save' : 'Create'}
         </Button>
         <Button disabled={!canCreate} onClick={onCreateAndBoot} type="button">
-          Create and boot now
+          {editing ? 'Save and reboot' : 'Create and boot now'}
         </Button>
       </div>
     </form>

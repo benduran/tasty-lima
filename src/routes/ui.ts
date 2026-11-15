@@ -1,7 +1,7 @@
 export const uiRoutes = {
+  editVm: (name: string) => `/instances/edit/${name}` as const,
   home: () => '/' as const,
   instanceClone: (name: string) => `/instances/${name}/clone` as const,
-  instanceConfig: (name: string) => `/instances/${name}/config` as const,
   instanceLogs: (name: string) => `/instances/${name}/logs` as const,
   instanceSsh: (name: string) => `/instances/${name}/ssh` as const,
   instances: () => '/instances' as const,

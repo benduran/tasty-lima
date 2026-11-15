@@ -1,10 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { SubmitEvent } from 'react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 import { z } from 'zod';
 import { useCreateInstance } from '../../hooks/use-create-instance.ts';
+import { useEditInstance } from '../../hooks/use-edit-instance.ts';
+import { useQueryInstance } from '../../hooks/use-query-instance.ts';
 import { useQueryMachineInfo } from '../../hooks/use-query-machine-info.ts';
 import { useQueryPublicTemplates } from '../../hooks/use-query-public-templates.ts';
 import { withExistingQuery } from '../../lib/with-existing-query.ts';
@@ -80,17 +82,37 @@ function defaultMountTypeFor(
   return undefined;
 }
 
-/* Sole owner of the new-VM draft state; only vm-settings-form may use this. */
-export function useVmSettings() {
+export type UseVmSettingsOpts = {
+  vmToEdit?: Nullish<string>;
+};
+
+function toFormDraft(config: LimaYAMLInput): LimaYAMLInput {
+  return {
+    ...config,
+    disk: GiBStringToBareNumberStr(config.disk),
+    memory: GiBStringToBareNumberStr(config.memory),
+  };
+}
+
+/* Sole owner of the new-VM draft state (only vm-settings-form may use this) */
+export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
   /** queries */
   const { data: machineInfo } = useQueryMachineInfo();
   const { data: templates, isPending: templatesPending } =
     useQueryPublicTemplates();
   const { isPending: isCreating, mutate: createInstance } = useCreateInstance();
+  const { isPending: isSaving, mutate: editInstance } = useEditInstance();
+  const { data: vmToEditData, isFetching: fetchingVmToEdit } =
+    useQueryInstance(vmToEdit);
+  const editing = Boolean(vmToEdit);
+  const vmToEditConfig = vmToEditData?.config;
 
   /** routing */
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+
+  /** refs */
+  const loadedVmRef = useRef<Nullish<string>>(null);
 
   /** store */
   const resetNewVmStore = useResetNewVMStore();
@@ -141,8 +163,20 @@ export function useVmSettings() {
   const userDraft: LimaUser = user ?? {};
 
   const canCreate = useMemo(
-    () => nameValid && !isCreating && (!parsed || parsed.success),
-    [isCreating, parsed, nameValid],
+    () =>
+      (editing ? Boolean(vmToEditConfig) && !fetchingVmToEdit : nameValid) &&
+      !isCreating &&
+      !isSaving &&
+      (!parsed || parsed.success),
+    [
+      editing,
+      fetchingVmToEdit,
+      isCreating,
+      isSaving,
+      nameValid,
+      parsed,
+      vmToEditConfig,
+    ],
   );
 
   /** callbacks */
@@ -238,11 +272,7 @@ export function useVmSettings() {
 
       /* the form's store holds bare GiB numbers, so strip the unit suffixes
          the YAML draft may carry */
-      setConfig({
-        ...result.data,
-        disk: GiBStringToBareNumberStr(result.data.disk),
-        memory: GiBStringToBareNumberStr(result.data.memory),
-      });
+      setConfig(toFormDraft(result.data));
       setConfigMode('form');
     },
     [
@@ -265,32 +295,42 @@ export function useVmSettings() {
         submission = buildSubmitConfig();
       }
 
+      const onSuccess = () => {
+        void queryClient.invalidateQueries({
+          queryKey: INSTANCE_QUERY_KEY,
+        });
+        resetNewVmStore();
+        setLocation(withExistingQuery(uiRoutes.instances()));
+      };
+
+      if (vmToEdit) {
+        editInstance(
+          { config: submission, name: vmToEdit, startAfterEdit: start },
+          { onSuccess },
+        );
+        return;
+      }
+
       createInstance(
         {
           config: submission,
           name: (name ?? '').trim(),
           startAfterCreate: start,
         },
-        {
-          onSuccess: () => {
-            void queryClient.invalidateQueries({
-              queryKey: INSTANCE_QUERY_KEY,
-            });
-            resetNewVmStore();
-            setLocation(withExistingQuery(uiRoutes.instances()));
-          },
-        },
+        { onSuccess },
       );
     },
     [
       buildSubmitConfig,
       configMode,
       createInstance,
+      editInstance,
       name,
       parsed,
       queryClient,
       resetNewVmStore,
       setLocation,
+      vmToEdit,
     ],
   );
 
@@ -436,10 +476,19 @@ export function useVmSettings() {
 
   /** effects */
   useEffect(() => {
-    if (base?.length) return;
+    if (!vmToEdit || !vmToEditConfig || loadedVmRef.current === vmToEdit) {
+      return;
+    }
+    loadedVmRef.current = vmToEdit;
+    setName(vmToEdit);
+    setConfig(toFormDraft(vmToEditConfig));
+  }, [setConfig, setName, vmToEdit, vmToEditConfig]);
+
+  useEffect(() => {
+    if (editing || base?.length) return;
 
     setBase([{ url: templateLocator('default') }]);
-  }, [base, setBase]);
+  }, [base, editing, setBase]);
 
   useEffect(() => {
     if (arch || !currentMachineArch) return;
@@ -460,10 +509,11 @@ export function useVmSettings() {
   }, [arch, currentMachineArch, setVmType, vmType]);
 
   useEffect(() => {
+    if (editing) return;
     setCpus(1);
     setRam(String(1));
     setDisk(String(10));
-  }, [setCpus, setRam, setDisk]);
+  }, [editing, setCpus, setRam, setDisk]);
 
   /** keep the mount type compatible with the selected driver */
   useEffect(() => {
@@ -487,6 +537,7 @@ export function useVmSettings() {
     cpus,
     currentMachineArch,
     disk,
+    editing,
     isCreating,
     machineInfo,
     mounts: mounts ?? [],
@@ -537,6 +588,8 @@ export function useVmSettings() {
     templates,
     templatesPending,
     user: userDraft,
+    vmToEditMissing: Boolean(vmToEditData && !vmToEditData.instance),
+    vmToEditRunning: vmToEditData?.instance?.status === 'Running',
     vmType,
     vmTypes,
     vzOff,

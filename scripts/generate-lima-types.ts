@@ -17,7 +17,13 @@ const goDir = path.join(repoRoot, 'scripts', 'lima-types');
 const outFile = path.join(repoRoot, 'src', 'shared', 'limactl-types.gen.ts');
 
 // mirrors the output types in scripts/lima-types/main.go
-type LimaTypes = { defs: Def[]; enums: Enum[]; version: string };
+type LimaTypes = {
+  defs: Def[];
+  enums: Enum[];
+  filenames: Constant[];
+  version: string;
+};
+type Constant = { name: string; value: string };
 type Enum = { doc?: string; name: string; open?: boolean; values: string[] };
 type Def = { fields: Field[]; name: string };
 type Field = {
@@ -243,6 +249,10 @@ function render(types: LimaTypes) {
         ? `${renderer.def(def, ['One line of `limactl list --json` output.'])}\n`
         : `${renderer.def(def, [])}\n`,
     ),
+    'export const LimaFilenames = {',
+    ...types.filenames.map(({ name, value }) => `  ${name}: ${quote(value)},`),
+    '} as const;',
+    '',
   ].join('\n');
 }
 

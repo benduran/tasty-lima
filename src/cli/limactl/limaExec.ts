@@ -8,14 +8,15 @@ import type { LimaTemplateSummary } from '../../shared/codecs.ts';
 import { LimaYAMLInputCodec } from '../../shared/codecs.ts';
 import type {
   CreateLimaVM,
+  EditLimaVM,
   LimaInstance,
   LimaYAMLInput,
   LogLevel,
   LogLine,
   Nullish,
 } from '../../shared/types.ts';
-import { LimaInstanceSchema } from '../../shared/types.ts';
-import { isObject } from '../../shared/util.ts';
+import { LimaFilenames, LimaInstanceSchema } from '../../shared/types.ts';
+import { byteSizeToBytes, isObject, safeJsonParse } from '../../shared/util.ts';
 import { TASTY_LIMA_TEMP } from '../constants.ts';
 import { logger } from '../logger.ts';
 import { getLimaBinaryPath } from './ensureLimaCtl.ts';
@@ -27,7 +28,9 @@ type LogLineSink = {
   write: (chunk: Buffer) => void;
 };
 
-type OnLogLines = (lines: LogLine[]) => void;
+export type UnsequencedLogLine = Omit<LogLine, 'seq'>;
+
+export type OnLogLines = (lines: UnsequencedLogLine[]) => void;
 
 type LimaExecOpts = Partial<{
   sink: LogLineSink;
@@ -106,7 +109,7 @@ export async function getInstanceByName(
   name: string,
 ): Promise<Nullish<LimaInstance>> {
   const instances = await listInstances();
-  return instances.find(instance => instance.name === name);
+  return instances.find(instance => instance.name === name) ?? null;
 }
 
 export async function listTemplates(): Promise<LimaTemplateSummary[]> {
@@ -199,14 +202,6 @@ function levelFromLimactlJson(level: string): LogLevel {
   }
 }
 
-function safeJsonParse(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return undefined;
-  }
-}
-
 type ParsedLimactlLine = {
   dedupeKey: string | undefined;
   level: LogLevel;
@@ -255,14 +250,8 @@ function createLogLineSink(onLines?: OnLogLines): LogLineSink {
   const decoder = new StringDecoder('utf8');
   const seen = new Set<string>();
   let pending = '';
-  let seq = 0;
 
-  const toLogLine = (level: LogLevel, msg: string, t: number): LogLine => {
-    seq += 1;
-    return { level, msg, seq, t };
-  };
-
-  const parseRaw = (raw: string): LogLine[] => {
+  const parseRaw = (raw: string): UnsequencedLogLine[] => {
     const line = raw.replace(/\r$/, '');
     if (!line.trim()) return [];
     const parsed = parseLimactlLine(line);
@@ -270,10 +259,10 @@ function createLogLineSink(onLines?: OnLogLines): LogLineSink {
       if (seen.has(parsed.dedupeKey)) return [];
       seen.add(parsed.dedupeKey);
     }
-    return [toLogLine(parsed.level, parsed.msg, parsed.t)];
+    return [{ level: parsed.level, msg: parsed.msg, t: parsed.t }];
   };
 
-  const emit = (lines: LogLine[]) => {
+  const emit = (lines: UnsequencedLogLine[]) => {
     if (lines.length > 0) onLines?.(lines);
   };
 
@@ -289,7 +278,7 @@ function createLogLineSink(onLines?: OnLogLines): LogLineSink {
       pending = '';
       emit(rest.split('\n').flatMap(parseRaw));
     },
-    note: (level, msg) => emit([toLogLine(level, msg, Date.now())]),
+    note: (level, msg) => emit([{ level, msg, t: Date.now() }]),
     write: chunk => consume(decoder.write(chunk)),
   };
 }
@@ -308,15 +297,13 @@ type HostAgentStatus = NonNullable<
   z.infer<typeof HostAgentStatusSchema>['status']
 >;
 
-const HOST_AGENT_EVENTS_LOG = 'ha.stdout.log';
-
 async function readHostAgentStatus(
   instanceDir: string,
 ): Promise<HostAgentStatus | undefined> {
   let contents: string;
   try {
     contents = await fs.readFile(
-      path.join(instanceDir, HOST_AGENT_EVENTS_LOG),
+      path.join(instanceDir, LimaFilenames.HostAgentStdoutLog),
       'utf-8',
     );
   } catch {
@@ -351,14 +338,22 @@ async function tolerateDegradedBoot(
   throw error;
 }
 
+async function withTempDir<T>(prefix: string, fn: (dir: string) => Promise<T>) {
+  await fs.mkdir(TASTY_LIMA_TEMP, { recursive: true });
+  const dir = await fs.mkdtemp(path.join(TASTY_LIMA_TEMP, prefix));
+  try {
+    return await fn(dir);
+  } finally {
+    await fs.rm(dir, { force: true, recursive: true });
+  }
+}
+
 export async function createInstance(
   opts: CreateLimaVM,
   onLines?: OnLogLines,
 ): Promise<LimaInstance> {
-  await fs.mkdir(TASTY_LIMA_TEMP, { recursive: true });
-  const dir = await fs.mkdtemp(path.join(TASTY_LIMA_TEMP, 'create-vm-'));
-  try {
-    const configFile = path.join(dir, 'lima.yaml');
+  return await withTempDir('create-vm-', async dir => {
+    const configFile = path.join(dir, LimaFilenames.LimaYAML);
     await fs.writeFile(configFile, LimaYAMLInputCodec.encode(opts.config));
 
     const configYaml = LimaYAMLInputCodec.encode(
@@ -393,9 +388,7 @@ export async function createInstance(
       );
     }
     return created;
-  } finally {
-    await fs.rm(dir, { force: true, recursive: true });
-  }
+  });
 }
 
 export async function bootInstance(name: string, onLines?: OnLogLines) {
@@ -416,6 +409,49 @@ export async function shutdownInstance(name: string, onLines?: OnLogLines) {
     sink: createLogLineSink(onLines),
   });
   return name;
+}
+
+export async function readInstanceConfig(instanceDir: string) {
+  return LimaYAMLInputCodec.decode(
+    await fs.readFile(path.join(instanceDir, LimaFilenames.LimaYAML), 'utf-8'),
+  );
+}
+
+export async function editInstance(
+  { config, name, startAfterEdit }: EditLimaVM,
+  onLines?: OnLogLines,
+) {
+  const instance = await getInstanceByName(name);
+  if (!instance) {
+    throw new Error(`unable to edit "${name}" because it doesn't exist`);
+  }
+
+  const newDisk = byteSizeToBytes(config.disk);
+  if (instance.disk && newDisk && newDisk < instance.disk) {
+    throw new Error(
+      `unable to edit "${name}": shrinking its disk (${instance.disk} bytes -> ${newDisk} bytes) is not supported`,
+    );
+  }
+
+  await withTempDir('edit-vm-', async dir => {
+    const configFile = path.join(dir, LimaFilenames.LimaYAML);
+    await fs.writeFile(configFile, LimaYAMLInputCodec.encode(config));
+    await limaExec(
+      ['--tty=false', '--log-format=json', 'tmpl', 'validate', configFile],
+      { sink: createLogLineSink(onLines) },
+    );
+
+    if (instance.status === 'Running') {
+      await shutdownInstance(name, onLines);
+    }
+    await fs.copyFile(
+      configFile,
+      path.join(instance.dir, LimaFilenames.LimaYAML),
+    );
+  });
+
+  if (!startAfterEdit) return { degraded: false, name };
+  return await bootInstance(name, onLines);
 }
 
 export async function deleteInstance(name: string) {

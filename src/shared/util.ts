@@ -112,11 +112,10 @@ const BYTES_PER_UNIT: Record<string, number> = {
   tib: 1024 ** 4,
 };
 
-/** Parses a Lima/go-units byte-size string ("8GiB", "512M", "1.5GB") to whole GiB. */
-export function GiBStringToBareNumber(gibStr: Nullish<string>) {
-  if (isNullOrUndefined(gibStr)) return gibStr;
+export function byteSizeToBytes(size: Nullish<string>) {
+  if (isNullOrUndefined(size)) return size;
 
-  const match = /^([\d.]+)\s*([a-zA-Z]*)$/.exec(gibStr.trim());
+  const match = /^([\d.]+)\s*([a-zA-Z]*)$/.exec(size.trim());
   if (!match) return null;
 
   const magnitude = Number.parseFloat(match[1] ?? '');
@@ -124,7 +123,14 @@ export function GiBStringToBareNumber(gibStr: Nullish<string>) {
     match[2] === undefined ? undefined : BYTES_PER_UNIT[match[2].toLowerCase()];
   if (!Number.isFinite(magnitude) || unitBytes === undefined) return null;
 
-  return Math.ceil((magnitude * unitBytes) / 1024 ** 3);
+  return magnitude * unitBytes;
+}
+
+/** Parses a Lima/go-units byte-size string ("8GiB", "512M", "1.5GB") to whole GiB. */
+export function GiBStringToBareNumber(gibStr: Nullish<string>) {
+  const bytes = byteSizeToBytes(gibStr);
+  if (isNullOrUndefined(bytes)) return bytes;
+  return Math.ceil(bytes / 1024 ** 3);
 }
 
 /**
@@ -135,4 +141,22 @@ export function GiBStringToBareNumber(gibStr: Nullish<string>) {
 export function GiBStringToBareNumberStr(value: Nullish<string>) {
   if (isNullOrUndefined(value)) return undefined;
   return String(GiBStringToBareNumber(value) ?? value);
+}
+
+export function safeJsonParse(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
+export function dropNullishFields(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(dropNullishFields);
+  if (isNullOrUndefined(value) || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([, field]) => !isNullOrUndefined(field))
+      .map(([key, field]) => [key, dropNullishFields(field)]),
+  );
 }

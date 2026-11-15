@@ -1,8 +1,13 @@
 import Sockette from 'sockette';
 import { v4 as uuid } from 'uuid';
+import { errorToString } from '../shared/error-to-string.ts';
 import { apiRoutes } from '../shared/routes.ts';
 import type { Nullish, WebSocketMessage } from '../shared/types.ts';
-import { WebSocketMessageCodec } from '../shared/types.ts';
+import {
+  UnreadableResponseSchema,
+  WebSocketMessageCodec,
+} from '../shared/types.ts';
+import { safeJsonParse } from '../shared/util.ts';
 
 function fullWebsocketUrl() {
   const { host, protocol } = window.location;
@@ -31,6 +36,8 @@ export class ClientSocket {
   private heartbeatInterval: Nullish<NodeJS.Timeout> = null;
   private state: 'closed' | 'connecting' | 'connected' = 'closed';
   private sendAfterOpenedQueue: WebSocketMessage[] = [];
+  private hasOpened = false;
+  private reconnectListeners = new Set<() => void>();
 
   constructor() {
     this.ws = new Sockette(fullWebsocketUrl(), {
@@ -87,6 +94,13 @@ export class ClientSocket {
     this.onceHandlers.push({ handler, type });
   }
 
+  onReconnect(listener: () => void) {
+    this.reconnectListeners.add(listener);
+    return () => {
+      this.reconnectListeners.delete(listener);
+    };
+  }
+
   killHeartbeat() {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
@@ -135,19 +149,34 @@ export class ClientSocket {
     }
     this.sendAfterOpenedQueue = [];
     this.startHeartbeat();
+    if (this.hasOpened) {
+      for (const listener of this.reconnectListeners) listener();
+    }
+    this.hasOpened = true;
   };
 
   private receive = (evt: MessageEvent) => {
+    const text = typeof evt.data === 'string' ? evt.data : String(evt.data);
     let data: WebSocketMessage;
     try {
-      data = WebSocketMessageCodec.decode(
-        typeof evt.data === 'string' ? evt.data : String(evt.data),
-      );
-    } catch (unknown) {
-      // there is no requestId to reject against in a malformed message, and
-      // the browser has no logger, so console is the only channel here
+      data = WebSocketMessageCodec.decode(text);
+    } catch (error) {
+      const unreadable = UnreadableResponseSchema.safeParse(
+        safeJsonParse(text),
+      ).data;
+      const pending =
+        unreadable && this.pendingRequests.get(unreadable.requestId);
+      if (unreadable && pending) {
+        this.pendingRequests.delete(unreadable.requestId);
+        pending.reject(
+          new Error(
+            `the server sent a ${unreadable.type} this client could not read: ${errorToString(error)}`,
+          ),
+        );
+        return;
+      }
       // biome-ignore lint/suspicious/noConsole: no client-side logger exists
-      return console.warn('dropping a malformed websocket message', unknown);
+      return console.warn('dropping a malformed websocket message', error);
     }
 
     const pending = data.type.startsWith('response-')

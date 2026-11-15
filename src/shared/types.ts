@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { LimaTemplateSummarySchema } from './codecs.ts';
-import { CreateLimaVMSchema } from './creator-types.ts';
+import {
+  CreateLimaVMSchema,
+  EditLimaVMSchema,
+  LimaYAMLInputSchema,
+} from './creator-types.ts';
 import { LimaInstanceSchema } from './limactl-types.gen.ts';
 
 export * from './creator-types.ts';
@@ -86,6 +90,34 @@ export const ShutdownInstanceRequestResponseSchema = z.object({
   name: z.string().nonempty(),
 });
 
+export const InstanceOperationRequestSchema = z.enum([
+  'request-boot-instance',
+  'request-create-instance',
+  'request-edit-instance',
+  'request-shutdown-instance',
+]);
+export type InstanceOperationRequest = z.infer<
+  typeof InstanceOperationRequestSchema
+>;
+
+export const ResponseQueryInstanceSchema = z.object({
+  config: LimaYAMLInputSchema.nullish(),
+  instance: LimaInstanceSchema.nullish(),
+});
+export type RequestQueryInstance = z.infer<typeof ResponseQueryInstanceSchema>;
+
+export const InstanceOperationSchema = z.object({
+  data: z.unknown().optional(),
+  error: z.string().optional(),
+  finishedAt: z.int().optional(),
+  lines: LogLineSchema.array(),
+  name: z.string().nonempty(),
+  request: InstanceOperationRequestSchema,
+  requestId: RequestIdSchema,
+  startedAt: z.int(),
+});
+export type InstanceOperation = z.infer<typeof InstanceOperationSchema>;
+
 export const WebSocketMessageSchema = z.discriminatedUnion('type', [
   z.object({
     ...BaseWebsocketSchema.shape,
@@ -107,6 +139,18 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
     data: LimaInstanceSchema.array(),
     sender: z.literal('server'),
     type: z.literal('response-query-instances'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: z.object({ name: z.string().nonempty() }),
+    sender: z.literal('client'),
+    type: z.literal('request-query-instance'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: ResponseQueryInstanceSchema,
+    sender: z.literal('server'),
+    type: z.literal('response-query-instance'),
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
@@ -171,6 +215,23 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
+    data: InstanceOperationSchema.omit({ lines: true }),
+    sender: z.literal('server'),
+    type: z.literal('stream-instance-operation'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    sender: z.literal('client'),
+    type: z.literal('request-query-instance-operations'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: InstanceOperationSchema.array(),
+    sender: z.literal('server'),
+    type: z.literal('response-query-instance-operations'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
     data: z.object({ name: z.string().nonempty() }),
     sender: z.literal('client'),
     type: z.literal('request-boot-instance'),
@@ -193,8 +254,25 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
     sender: z.literal('server'),
     type: z.literal('response-shutdown-instance'),
   }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: EditLimaVMSchema,
+    sender: z.literal('client'),
+    type: z.literal('request-edit-instance'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: BootInstanceRequestResponseSchema,
+    sender: z.literal('server'),
+    type: z.literal('response-edit-instance'),
+  }),
 ]);
 export type WebSocketMessage = z.infer<typeof WebSocketMessageSchema>;
+
+export const UnreadableResponseSchema = z.object({
+  requestId: z.string(),
+  type: z.string().startsWith('response-'),
+});
 
 /**
  * Client -> server messages that expect a response.
@@ -237,7 +315,10 @@ export const WsResponseMap = {
   'request-boot-instance': 'response-boot-instance',
   'request-create-instance': 'response-create-instance',
   'request-delete-instance': 'response-delete-instance',
+  'request-edit-instance': 'response-edit-instance',
   'request-heartbeat': 'response-heartbeat',
+  'request-query-instance': 'response-query-instance',
+  'request-query-instance-operations': 'response-query-instance-operations',
   'request-query-instances': 'response-query-instances',
   'request-query-machine-info': 'response-query-machine-info',
   'request-query-public-templates': 'response-query-public-templates',
@@ -247,13 +328,6 @@ export type WsResponseType = typeof WsResponseMap;
 
 /** request message names, verified by WsResponseTypeShape to pair with a response */
 export type WsRequestMessageName = keyof WsResponseType;
-
-export type InstanceOperationRequest = Extract<
-  WsRequestMessageName,
-  | 'request-boot-instance'
-  | 'request-create-instance'
-  | 'request-shutdown-instance'
->;
 
 /**
  * Request bodies as callers build them: a WsRequestMessage without a

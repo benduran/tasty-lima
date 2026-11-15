@@ -1,12 +1,16 @@
 import type { WebSocketLike } from '@hono/node-server';
 import type { WSContext, WSMessageReceive } from 'hono/ws';
 import { errorToString } from '../../shared/error-to-string.ts';
-import type { LogLine, WebSocketMessage } from '../../shared/types.ts';
+import type { WebSocketMessage } from '../../shared/types.ts';
 import {
   RequestIdSchema,
   responseNameOf,
   WebSocketMessageCodec,
 } from '../../shared/types.ts';
+import {
+  listInstanceOperations,
+  runInstanceOperation,
+} from '../instance-operations.ts';
 import {
   createInstance,
   listInstances,
@@ -15,6 +19,9 @@ import {
 import {
   bootInstance,
   deleteInstance,
+  editInstance,
+  getInstanceByName,
+  readInstanceConfig,
   shutdownInstance,
 } from '../limactl/limaExec.ts';
 import { getMachineInfo } from '../machine/get-info.ts';
@@ -30,16 +37,6 @@ function requestIdOf(text: string) {
 export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
   function send(msg: WebSocketMessage) {
     ws.send(WebSocketMessageCodec.encode(msg));
-  }
-
-  function streamLogsFor(name: string, requestId: string) {
-    return (lines: LogLine[]) =>
-      send({
-        data: { lines, name },
-        requestId,
-        sender: 'server',
-        type: 'stream-instance-logs',
-      });
   }
 
   function decode(text: string) {
@@ -73,20 +70,24 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
           });
         case 'request-create-instance':
           return send({
-            data: await createInstance(
-              parsed.data,
-              streamLogsFor(parsed.data.name, requestId),
-            ),
+            data: await runInstanceOperation({
+              exec: onLines => createInstance(parsed.data, onLines),
+              name: parsed.data.name,
+              request: parsed.type,
+              requestId,
+            }),
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),
           });
         case 'request-boot-instance':
           return send({
-            data: await bootInstance(
-              parsed.data.name,
-              streamLogsFor(parsed.data.name, requestId),
-            ),
+            data: await runInstanceOperation({
+              exec: onLines => bootInstance(parsed.data.name, onLines),
+              name: parsed.data.name,
+              request: parsed.type,
+              requestId,
+            }),
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),
@@ -94,11 +95,44 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
         case 'request-shutdown-instance':
           return send({
             data: {
-              name: await shutdownInstance(
-                parsed.data.name,
-                streamLogsFor(parsed.data.name, requestId),
-              ),
+              name: await runInstanceOperation({
+                exec: onLines => shutdownInstance(parsed.data.name, onLines),
+                name: parsed.data.name,
+                request: parsed.type,
+                requestId,
+              }),
             },
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
+        case 'request-query-instance': {
+          const instance = await getInstanceByName(parsed.data.name);
+          return send({
+            data: {
+              config: instance ? await readInstanceConfig(instance.dir) : null,
+              instance,
+            },
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
+        }
+        case 'request-edit-instance':
+          return send({
+            data: await runInstanceOperation({
+              exec: onLines => editInstance(parsed.data, onLines),
+              name: parsed.data.name,
+              request: parsed.type,
+              requestId,
+            }),
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
+        case 'request-query-instance-operations':
+          return send({
+            data: listInstanceOperations(),
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),

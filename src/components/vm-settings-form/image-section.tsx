@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group.tsx';
 type ImageSectionProps = {
   arch: Nullish<LimaArch>;
   currentMachineArch: Nullish<LimaArch>;
+  editing: boolean;
   machineInfo: Nullish<MachineInfo>;
   name: Nullish<string>;
   onArchChange: (value: string) => void;
@@ -34,6 +35,7 @@ type ImageSectionProps = {
 export function ImageSection({
   arch,
   currentMachineArch,
+  editing,
   machineInfo,
   name,
   onArchChange,
@@ -56,6 +58,7 @@ export function ImageSection({
       >
         <Input
           autoComplete="off"
+          disabled={editing}
           id="vm-name"
           onBlur={(event: FocusEvent<HTMLInputElement>) =>
             onNameChange(kebabCase(event.currentTarget.value))
@@ -68,18 +71,21 @@ export function ImageSection({
           value={name || ''}
         />
       </LabeledField>
-      <TemplatePicker
-        isPending={templatesPending}
-        machineInfo={machineInfo}
-        onSelect={onTemplateSelect}
-        selected={selectedTemplate}
-        templates={templates}
-        vmType={vmType}
-      />
+      {!editing && (
+        <TemplatePicker
+          isPending={templatesPending}
+          machineInfo={machineInfo}
+          onSelect={onTemplateSelect}
+          selected={selectedTemplate}
+          templates={templates}
+          vmType={vmType}
+        />
+      )}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-x-5 gap-y-5">
         <CrtFieldset legend="ARCH">
           <RadioGroup
             className="flex flex-col gap-2"
+            disabled={editing}
             onValueChange={onArchChange}
             value={arch ?? ''}
           >

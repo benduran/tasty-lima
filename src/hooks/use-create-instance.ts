@@ -4,7 +4,6 @@ import { useClientSocket } from '../providers/ClientSocketProvider.tsx';
 import type { CreateLimaVM } from '../shared/types.ts';
 import { CreateLimaVMSchema, LimaInstanceSchema } from '../shared/types.ts';
 import { websocketFetch } from '../shared/websocket-fetch.ts';
-import { clearInstanceLogs } from '../stores/instance-logs-store.ts';
 import { useOpenLogsViewer } from '../stores/new-vm-store.ts';
 
 const MUTATION_KEY = ['useCreateInstance'] as const;
@@ -17,11 +16,9 @@ export function useCreateInstance() {
   return useMutation({
     meta: {
       errorTitle: (opts: CreateLimaVM) => `Failed to create VM "${opts.name}"`,
-      operation: 'request-create-instance',
     },
     mutationFn: async (opts: CreateLimaVM) => {
       const validated = CreateLimaVMSchema.parse(opts);
-      clearInstanceLogs(validated.name);
       openLogsViewer(validated.name);
 
       return await websocketFetch({

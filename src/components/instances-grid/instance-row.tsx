@@ -1,17 +1,20 @@
 import {
+  PencilIcon,
   PlayIcon,
   ScrollTextIcon,
   SquareStopIcon,
   TrashIcon,
 } from 'lucide-react';
+import { useLocation } from 'wouter';
 import { useBootInstance } from '../../hooks/use-boot-instance.ts';
 import { useDeleteInstance } from '../../hooks/use-delete-instance.ts';
 import { useInstanceOperation } from '../../hooks/use-instance-operation.ts';
 import { useShutdownInstance } from '../../hooks/use-shutdown-instance.ts';
+import { uiRoutes } from '../../routes/ui.ts';
 import type { LimaInstance } from '../../shared/types.ts';
-import { bytesToGb } from '../../shared/util.ts';
+import { bytesToGb, isNullOrUndefined } from '../../shared/util.ts';
 import { useOpenLogsViewer } from '../../stores/new-vm-store.ts';
-import { operationLabels } from '../instance-logs/operation-status.tsx';
+import { OPERATION_LABELS } from '../instance-logs/operation-status.tsx';
 import { Button } from '../ui/button.tsx';
 import { ConfirmButton } from '../ui/confirm-button.tsx';
 import { TableCell, TableRow } from '../ui/table.tsx';
@@ -28,17 +31,24 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
 
   /** routing */
   const openLogsViewer = useOpenLogsViewer();
+  const [, setLocation] = useLocation();
 
   const pending =
-    operation?.state.status === 'pending' && operationLabels(operation);
+    operation && isNullOrUndefined(operation.finishedAt)
+      ? OPERATION_LABELS[operation.request]
+      : undefined;
+  const stopping =
+    !isNullOrUndefined(pending) &&
+    operation?.request === 'request-shutdown-instance';
   const deleteTooltip = `Delete ${vm.name}`;
+  const editTooltip = `Edit ${vm.name}`;
   const logsTooltip = `Logs for ${vm.name}`;
   const startTooltip = `Boot ${vm.name}`;
   const stopTooltip = `Shutdown ${vm.name}`;
 
   return (
     <TableRow>
-      <TableCell className="text-[23px]">{vm.name}</TableCell>
+      <TableCell>{vm.name}</TableCell>
       <TableCell>{pending ? `${pending.pending}...` : vm.status}</TableCell>
       <TableCell>{vm.config?.os}</TableCell>
       <TableCell>{vm.arch}</TableCell>
@@ -46,7 +56,7 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
       <TableCell>{bytesToGb(vm.memory)}GiB</TableCell>
       <TableCell>{bytesToGb(vm.disk)}GiB</TableCell>
       <TableCell>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center flex-wrap gap-2">
           {pending && (
             <Button
               aria-label={`${pending.pending} ${vm.name}`}
@@ -74,7 +84,7 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
               <TooltipContent>{startTooltip}</TooltipContent>
             </Tooltip>
           )}
-          {!pending && vm.status === 'Running' && (
+          {!stopping && vm.status === 'Running' && (
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -91,6 +101,22 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
               <TooltipContent>{stopTooltip}</TooltipContent>
             </Tooltip>
           )}
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label={editTooltip}
+                  disabled={Boolean(pending)}
+                  onClick={() => setLocation(uiRoutes.editVm(vm.name))}
+                  size="sm"
+                  variant="outline"
+                >
+                  <PencilIcon />
+                </Button>
+              }
+            />
+            <TooltipContent>{editTooltip}</TooltipContent>
+          </Tooltip>
           {operation && (
             <Tooltip>
               <TooltipTrigger

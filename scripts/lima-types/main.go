@@ -23,9 +23,10 @@ import (
 )
 
 const (
-	limaModule  = "github.com/lima-vm/lima/v2"
-	limatypePkg = limaModule + "/pkg/limatype"
-	storePkg    = limaModule + "/pkg/store"
+	limaModule   = "github.com/lima-vm/lima/v2"
+	limatypePkg  = limaModule + "/pkg/limatype"
+	filenamesPkg = limatypePkg + "/filenames"
+	storePkg     = limaModule + "/pkg/store"
 )
 
 // `limactl list` prints store.FormatData, which embeds limatype.Instance and
@@ -50,7 +51,13 @@ type Output struct {
 	Version string `json:"version"`
 	Enums   []Enum `json:"enums"`
 	// Defs are in dependency order, so the root is last.
-	Defs []Def `json:"defs"`
+	Defs      []Def      `json:"defs"`
+	Filenames []Constant `json:"filenames"`
+}
+
+type Constant struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 type Enum struct {
@@ -117,7 +124,7 @@ func main() {
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
 			packages.NeedSyntax | packages.NeedImports | packages.NeedModule,
 	}
-	pkgs, err := packages.Load(cfg, limatypePkg, storePkg)
+	pkgs, err := packages.Load(cfg, limatypePkg, filenamesPkg, storePkg)
 	if err != nil {
 		fail("loading lima: %v", err)
 	}
@@ -148,6 +155,7 @@ func main() {
 	// the template engine marshals a FormatData value, which isn't addressable,
 	// so pointer-receiver marshalers (like *Instance.MarshalJSON) don't apply
 	g.node(root.Type(), false, false)
+	g.out.Filenames = stringConstants(byPath[filenamesPkg].Types)
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
@@ -530,4 +538,17 @@ func (g *gen) presence(t types.Type, n *Node, opts string, addressable bool) (op
 	nullable = !omitted && nilable(t, addressable) && n.Kind != "unknown"
 	// yq deletes empty maps, and structs (or pointers to them) that marshal to {}
 	return optional || n.Kind == "record" || g.canBeEmpty(n), nullable
+}
+
+func stringConstants(pkg *types.Package) []Constant {
+	out := []Constant{}
+	scope := pkg.Scope()
+	for _, name := range scope.Names() {
+		c, ok := scope.Lookup(name).(*types.Const)
+		if !ok || !c.Exported() || c.Val().Kind() != constant.String {
+			continue
+		}
+		out = append(out, Constant{Name: name, Value: constant.StringVal(c.Val())})
+	}
+	return out
 }

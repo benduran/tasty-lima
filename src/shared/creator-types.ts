@@ -64,3 +64,10 @@ export const CreateLimaVMSchema = z.object({
   startAfterCreate: z.boolean(),
 });
 export type CreateLimaVM = z.infer<typeof CreateLimaVMSchema>;
+
+export const EditLimaVMSchema = z.object({
+  config: LimaYAMLInputSchema,
+  name: z.string().nonempty(),
+  startAfterEdit: z.boolean(),
+});
+export type EditLimaVM = z.infer<typeof EditLimaVMSchema>;

@@ -4,6 +4,7 @@ import type { LimaYAMLInput } from './creator-types.ts';
 import { LimaYAMLInputSchema } from './creator-types.ts';
 import { errorToString } from './error-to-string.ts';
 import type { LimaProvision } from './limactl-types.gen.ts';
+import { dropNullishFields } from './util.ts';
 
 export const BASH_SCRIPT_HEADER = '#!/bin/bash\nset -eux -o pipefail';
 
@@ -90,7 +91,7 @@ export const LimaYAMLInputCodec = z.codec(
         });
         return yaml as never;
       }
-      const validated = LimaYAMLInputSchema.safeParse(raw);
+      const validated = LimaYAMLInputSchema.safeParse(dropNullishFields(raw));
       return validated.success
         ? configFromYamlParsed(validated.data)
         : (raw as never);

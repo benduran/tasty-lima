@@ -1,22 +1,20 @@
-import type { InstanceOperation } from '../../hooks/use-instance-operation.ts';
 import { useNow } from '../../hooks/use-now.ts';
-import { errorToString } from '../../shared/error-to-string.ts';
-import type { InstanceOperationRequest } from '../../shared/types.ts';
+import type {
+  InstanceOperation,
+  InstanceOperationRequest,
+} from '../../shared/types.ts';
 import { BootInstanceRequestResponseSchema } from '../../shared/types.ts';
 import { CrtCursor } from '../crt.tsx';
 
-const OPERATION_LABELS: Record<
+export const OPERATION_LABELS: Record<
   InstanceOperationRequest,
   { pending: string; verb: string }
 > = {
   'request-boot-instance': { pending: 'BOOTING', verb: 'BOOT' },
   'request-create-instance': { pending: 'CREATING', verb: 'CREATE' },
+  'request-edit-instance': { pending: 'SAVING', verb: 'SAVE' },
   'request-shutdown-instance': { pending: 'STOPPING', verb: 'SHUTDOWN' },
 };
-
-export function operationLabels(operation: InstanceOperation) {
-  return operation.request && OPERATION_LABELS[operation.request];
-}
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.max(0, Math.round(ms / 1000));
@@ -27,40 +25,28 @@ function formatDuration(ms: number) {
 
 function isDegraded(operation: InstanceOperation) {
   return Boolean(
-    BootInstanceRequestResponseSchema.safeParse(operation.state.data).data
-      ?.degraded,
+    BootInstanceRequestResponseSchema.safeParse(operation.data).data?.degraded,
   );
 }
 
 export function operationHeaderLabel(operation: InstanceOperation) {
-  const labels = operationLabels(operation);
-  if (!labels) return undefined;
-  switch (operation.state.status) {
-    case 'pending':
-      return `${labels.pending}...`;
-    case 'success':
-      return isDegraded(operation)
-        ? `${labels.verb} FINISHED (DEGRADED)`
-        : `${labels.verb} FINISHED`;
-    case 'error':
-      return `${labels.verb} FAILED`;
-    default:
-      return undefined;
-  }
+  const labels = OPERATION_LABELS[operation.request];
+  if (operation.finishedAt === undefined) return `${labels.pending}...`;
+  if (operation.error !== undefined) return `${labels.verb} FAILED`;
+  return isDegraded(operation)
+    ? `${labels.verb} FINISHED (DEGRADED)`
+    : `${labels.verb} FINISHED`;
 }
 
 export function OperationStatus({
-  name,
   operation,
 }: {
-  name: string;
   operation: InstanceOperation | undefined;
 }) {
-  const pending = operation?.state.status === 'pending';
+  const pending = operation !== undefined && operation.finishedAt === undefined;
   const now = useNow(pending);
-  const labels = operation && operationLabels(operation);
 
-  if (!operation || !labels) {
+  if (!operation) {
     return (
       <p className="px-4 pt-2 pb-1 text-phosphor-dim">
         NO OPERATIONS YET
@@ -69,30 +55,36 @@ export function OperationStatus({
     );
   }
 
+  const labels = OPERATION_LABELS[operation.request];
+  const elapsed = formatDuration(
+    (operation.finishedAt ?? now) - operation.startedAt,
+  );
+
   if (pending) {
     return (
       <p className="px-4 pt-2 pb-1 text-phosphor-dim">
-        {labels.pending} {name} ·{' '}
-        {formatDuration(now - operation.state.submittedAt)}
+        {labels.pending} {operation.name} · {elapsed}
         <CrtCursor />
       </p>
     );
   }
 
-  if (operation.state.status === 'error') {
+  if (operation.error !== undefined) {
     return (
       <div className="mx-4 mt-2 mb-1 bg-primary px-2 py-1 text-primary-foreground text-shadow-none">
-        <p>✗ {labels.verb} FAILED</p>
-        <p className="whitespace-pre-wrap wrap-anywhere">
-          {errorToString(operation.state.error)}
+        <p>
+          ✗ {labels.verb} FAILED after {elapsed}
         </p>
+        <p className="whitespace-pre-wrap wrap-anywhere">{operation.error}</p>
       </div>
     );
   }
 
   return (
     <div className="mx-4 mt-2 mb-1 px-2 py-1 outline -outline-offset-1">
-      <p>✓ {labels.verb} FINISHED</p>
+      <p>
+        ✓ {labels.verb} FINISHED in {elapsed}
+      </p>
       {isDegraded(operation) && (
         <p className="whitespace-pre-wrap wrap-anywhere">
           ⚠ booted in a degraded state: file sharing and port forwarding may not
