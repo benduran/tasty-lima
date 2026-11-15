@@ -17,9 +17,12 @@
     "build:cli": {
       "cache": false,
       "dependsOn": [
-        "build:ui"
+        "build:ui",
+        "gen:fake-fs",
+        "gen:constants",
+        "gen:lima-types"
       ],
-      "description": "nodec bundle for the host platform (runs after build:ui so dist/ exists for embedding); uncached while all targets write ./tasty-lima — make cacheable once each target gets its own --outDir"
+      "description": "nodec bundle for the host platform; build:ui then gen:fake-fs re-inline dist/ into content.gen.ts before bundling (uncached while all targets write ./tasty-lima — make cacheable once each target gets its own --outDir)"
     },
     "build:cli:all": {
       "dependsOn": [
@@ -30,12 +33,13 @@
         "build:cli:mac:arm64",
         "build:cli:win:x64"
       ],
-      "description": "Every nodec target the scripts define, after the UI is built"
+      "description": "Every nodec target, after the UI is built and inlined into the fake fs"
     },
     "build:cli:linux:arm64": {
       "cache": false,
       "dependsOn": [
         "build:ui",
+        "gen:fake-fs",
         "gen:constants",
         "gen:lima-types"
       ]
@@ -44,6 +48,7 @@
       "cache": false,
       "dependsOn": [
         "build:ui",
+        "gen:fake-fs",
         "gen:constants",
         "gen:lima-types"
       ]
@@ -52,6 +57,7 @@
       "cache": false,
       "dependsOn": [
         "build:ui",
+        "gen:fake-fs",
         "gen:constants",
         "gen:lima-types"
       ]
@@ -60,6 +66,7 @@
       "cache": false,
       "dependsOn": [
         "build:ui",
+        "gen:fake-fs",
         "gen:constants",
         "gen:lima-types"
       ]
@@ -68,6 +75,7 @@
       "cache": false,
       "dependsOn": [
         "build:ui",
+        "gen:fake-fs",
         "gen:constants",
         "gen:lima-types"
       ]
@@ -76,6 +84,7 @@
       "cache": false,
       "dependsOn": [
         "build:ui",
+        "gen:fake-fs",
         "gen:constants",
         "gen:lima-types"
       ]
@@ -129,7 +138,9 @@
         "build:ui"
       ],
       "inputs": [
-        "dist/**"
+        "dist/**",
+        "scripts/inline-ui.ts",
+        "src/cli/fake-fs/fake-fs.ts"
       ],
       "outputs": [
         "src/cli/fake-fs/content.gen.ts"
