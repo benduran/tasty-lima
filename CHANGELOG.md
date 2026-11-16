@@ -1,3 +1,25 @@
+## 0.0.2-alpha.1 (2026-11-16)
+
+### ✨ Features ✨
+
+- feat: added ability to copy a VM's template yaml for new VM creation (b1dd345630eeecda3fddd20ed852fe6b60979701)
+
+
+
+### 🔀 Miscellaneous 🔀
+
+- chore: always show all experiemental templates (675b9e1652d49a9cb17f9a1c65a3a5d9db073546)
+
+
+
+### 🛠️ Fixes 🛠️
+
+- fix: wsl 2 template picking (050b2aaa414a0a965e30abb55635eea6f3b62017)
+- fix: never use mounts provided by the template, for clarity (19674d6aae47cc12afe24adedb94aea3fabda865)
+- fix: prebuild ui always (a6364f7578fc62c35308b345e278da54c9e4bb64)
+
+---
+
 ## 0.0.2-alpha.0 (2026-11-15)
 
 ### ✨ Features ✨
