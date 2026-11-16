@@ -90,6 +90,7 @@
     "gen:fake-fs": "tsx ./scripts/inline-ui.ts",
     "gen:lima-types": "tsx ./scripts/generate-lima-types.ts",
     "preview": "vite preview",
+    "release": "tsx ./scripts/release-cli.ts",
     "test:lint": "biome check .",
     "test:types": "tsc --noEmit"
   },
