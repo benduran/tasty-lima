@@ -1,3 +1,11 @@
+## 0.0.2-alpha.5 (2026-11-16)
+
+### 🛠️ Fixes 🛠️
+
+- fix: bug where the lima dir wasn't created recursively on boot (f4e6934fb1b992387254bf0c34a9ac52992834b4)
+
+---
+
 ## 0.0.2-alpha.4 (2026-11-16)
 
 ### 🛠️ Fixes 🛠️
