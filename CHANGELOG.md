@@ -1,3 +1,11 @@
+## 0.0.2-alpha.2 (2026-11-16)
+
+### ✨ Features ✨
+
+- feat: added a shutdown guard (1e50521e2644acacc50d467b933b949fc52207de)
+
+---
+
 ## 0.0.2-alpha.1 (2026-11-16)
 
 ### ✨ Features ✨
