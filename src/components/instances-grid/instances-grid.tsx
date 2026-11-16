@@ -30,7 +30,7 @@ export function InstancesGrid({ instances, loading }: InstancesGridProps) {
           <TableHead>CPU</TableHead>
           <TableHead>MEM</TableHead>
           <TableHead>DISK</TableHead>
-          <TableHead className="max-w-25" />
+          <TableHead className="max-w-25">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

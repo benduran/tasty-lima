@@ -437,6 +437,15 @@ export async function readInstanceConfig(instanceDir: string) {
   );
 }
 
+export async function readInstanceYaml(name: string) {
+  const instance = await getInstanceByName(name);
+  if (!instance) {
+    throw new Error(`unable to read "${name}" because it doesn't exist`);
+  }
+
+  return fs.readFile(path.join(instance.dir, LimaFilenames.LimaYAML), 'utf-8');
+}
+
 export async function editInstance(
   { config, name, startAfterEdit }: EditLimaVM,
   onLines?: OnLogLines,

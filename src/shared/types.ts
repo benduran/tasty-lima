@@ -97,6 +97,11 @@ export type ResponseInstanceConnectCommand = z.infer<
   typeof ResponseInstanceConnectCommandSchema
 >;
 
+export const ResponseInstanceYamlSchema = z.object({
+  yaml: z.string().nonempty(),
+});
+export type ResponseInstanceYaml = z.infer<typeof ResponseInstanceYamlSchema>;
+
 export const InstanceOperationRequestSchema = z.enum([
   'request-boot-instance',
   'request-create-instance',
@@ -192,6 +197,18 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
     data: ResponseInstanceConnectCommandSchema,
     sender: z.literal('server'),
     type: z.literal('response-instance-connect-command'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: z.object({ name: z.string().nonempty() }),
+    sender: z.literal('client'),
+    type: z.literal('request-instance-yaml'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: ResponseInstanceYamlSchema,
+    sender: z.literal('server'),
+    type: z.literal('response-instance-yaml'),
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
@@ -337,6 +354,7 @@ export const WsResponseMap = {
   'request-edit-instance': 'response-edit-instance',
   'request-heartbeat': 'response-heartbeat',
   'request-instance-connect-command': 'response-instance-connect-command',
+  'request-instance-yaml': 'response-instance-yaml',
   'request-query-instance': 'response-query-instance',
   'request-query-instance-operations': 'response-query-instance-operations',
   'request-query-instances': 'response-query-instances',

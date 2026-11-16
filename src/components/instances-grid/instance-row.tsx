@@ -1,5 +1,6 @@
 import {
   CheckIcon,
+  CopyIcon,
   EllipsisIcon,
   PencilIcon,
   PlayIcon,
@@ -8,10 +9,11 @@ import {
   TerminalIcon,
   TrashIcon,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useBootInstance } from '../../hooks/use-boot-instance.ts';
+import { useCopiedFlag } from '../../hooks/use-copied-flag.ts';
 import { useCopyConnectCommand } from '../../hooks/use-copy-connect-command.ts';
+import { useCopyInstanceYaml } from '../../hooks/use-copy-instance-yaml.ts';
 import { useDeleteInstance } from '../../hooks/use-delete-instance.ts';
 import { useInstanceOperation } from '../../hooks/use-instance-operation.ts';
 import { useShutdownInstance } from '../../hooks/use-shutdown-instance.ts';
@@ -32,6 +34,7 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
   const { mutate: execShutdown } = useShutdownInstance();
   const { isPending: isBuildingCommand, mutateAsync: copyConnectCommand } =
     useCopyConnectCommand();
+  const { mutateAsync: copyInstanceYaml } = useCopyInstanceYaml();
 
   /** queries */
   const operation = useInstanceOperation(vm.name);
@@ -40,17 +43,9 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
   const openLogsViewer = useOpenLogsViewer();
   const [, setLocation] = useLocation();
 
-  /** copied-command flash state */
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (!copied) {
-      return;
-    }
-
-    const timeout = setTimeout(() => setCopied(false), 3000);
-    return () => clearTimeout(timeout);
-  }, [copied]);
+  /** state */
+  const [copied, setCopied] = useCopiedFlag();
+  const [yamlCopied, setYamlCopied] = useCopiedFlag();
 
   const pending =
     operation && isNullOrUndefined(operation.finishedAt)
@@ -151,6 +146,22 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
                 >
                   {copied ? <CheckIcon /> : <TerminalIcon />}
                   {copied ? 'Copied' : 'Copy shell command'}
+                </Button>
+                <Button
+                  className={actionButtonClass}
+                  data-copied={yamlCopied || undefined}
+                  onClick={() => {
+                    copyInstanceYaml({ name: vm.name })
+                      .then(() => setYamlCopied(true))
+                      .catch(() => {
+                        /* failure toasts are handled globally */
+                      });
+                  }}
+                  size="sm"
+                  variant="outline"
+                >
+                  {yamlCopied ? <CheckIcon /> : <CopyIcon />}
+                  {yamlCopied ? 'Copied' : 'Copy Template YAML'}
                 </Button>
                 <ConfirmButton
                   className={actionButtonClass}

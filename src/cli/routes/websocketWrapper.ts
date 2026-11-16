@@ -24,6 +24,7 @@ import {
   editInstance,
   getInstanceByName,
   readInstanceConfig,
+  readInstanceYaml,
   shutdownInstance,
 } from '../limactl/limaExec.ts';
 import { getMachineInfo } from '../machine/get-info.ts';
@@ -145,6 +146,14 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
               // ensureLimaCtl normally ran at startup; recover if it did not
               command: `"${getLimaBinaryPath() || (await ensureLimaCtl())}" shell "${parsed.data.name}"`,
             },
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
+
+        case 'request-instance-yaml':
+          return send({
+            data: { yaml: await readInstanceYaml(parsed.data.name) },
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),
