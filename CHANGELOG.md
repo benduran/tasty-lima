@@ -1,3 +1,17 @@
+## 0.0.2-alpha.7 (2026-11-16)
+
+### 📖 Docs 📖
+
+- docs: updated readme (7f0e77d8b0edd727d054d5b79b0db3d60111d4ff)
+
+
+
+### 🛠️ Fixes 🛠️
+
+- fix: turbo misconfiguration (c2ff43d95b7b584d2fca9f7bfa5a5eb18fe3e7f7)
+
+---
+
 ## 0.0.2-alpha.6 (2026-11-16)
 
 ### 🔀 Miscellaneous 🔀
