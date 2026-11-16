@@ -77,7 +77,7 @@
   "scripts": {
     "build:cli": "nodec --entry ./src/cli/tasty-lima.ts --name tasty-lima --nodeVersion 26.12.0 --outDir ./dist",
     "build:cli:linux:arm64": "nodec --entry ./src/cli/tasty-lima.ts --name tasty-lima --nodeVersion 26.12.0 --outDir ./dist --target linux-arm64",
-    "build:cli:linux:arm64-musl": "nodec --entry ./src/cli/tasty-lima.ts --name tasty-lima --nodeVersion 26.12.0 --outDir ./dist --target arm64-musl",
+    "build:cli:linux:arm64-musl": "nodec --entry ./src/cli/tasty-lima.ts --name tasty-lima --nodeVersion 26.12.0 --outDir ./dist --target linux-arm64-musl",
     "build:cli:linux:x64": "nodec --entry ./src/cli/tasty-lima.ts --name tasty-lima --nodeVersion 26.12.0 --outDir ./dist --target linux-x64",
     "build:cli:linux:x64-musl": "nodec --entry ./src/cli/tasty-lima.ts --name tasty-lima --nodeVersion 26.12.0 --outDir ./dist --target linux-x64-musl",
     "build:cli:mac:arm64": "nodec --entry ./src/cli/tasty-lima.ts --name tasty-lima --nodeVersion 26.12.0 --outDir ./dist --target macos-arm64",
