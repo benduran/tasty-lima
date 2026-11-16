@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { LimaTemplateSummary } from '../shared/codecs.ts';
 import type { LimaVMType, MachineInfo, Nullish } from '../shared/types.ts';
 import { isNullOrUndefined } from '../shared/util.ts';
 import type { AutocompleteItem } from './autocomplete.tsx';
 import { Autocomplete } from './autocomplete.tsx';
-import { CheckboxRow } from './checkbox-row.tsx';
 import { CrtFieldset } from './crt.tsx';
 
 function templateUnavailableReason(
@@ -45,39 +44,32 @@ export function TemplatePicker({
   templates,
   vmType,
 }: TemplatePickerProps) {
-  /** state */
-  const [showExperimental, setShowExperimental] = useState(false);
-
   /** memos */
   const options = useMemo<AutocompleteItem<string>[]>(
     () =>
-      templates
-        ?.filter(
-          t => showExperimental || !t.experimental || t.name === selected,
-        )
-        .map(t => {
-          const unavailableReason = templateUnavailableReason(
-            t.name,
-            machineInfo,
-            vmType,
-          );
+      templates?.map(t => {
+        const unavailableReason = templateUnavailableReason(
+          t.name,
+          machineInfo,
+          vmType,
+        );
 
-          return {
-            id: t.name,
-            label: (
-              <div className="flex flex-col gap-1">
-                {t.name}
-                {unavailableReason && (
-                  <span className="text-phosphor-dim pl-4">
-                    {unavailableReason}
-                  </span>
-                )}
-              </div>
-            ),
-            value: t.name,
-          };
-        }) ?? [],
-    [templates, showExperimental, machineInfo, vmType, selected],
+        return {
+          id: t.name,
+          label: (
+            <div className="flex flex-col gap-1">
+              {t.name}
+              {unavailableReason && (
+                <span className="text-phosphor-dim pl-4">
+                  {unavailableReason}
+                </span>
+              )}
+            </div>
+          ),
+          value: t.name,
+        };
+      }) ?? [],
+    [templates, machineInfo, vmType],
   );
 
   const selectedOpt = useMemo(() => {
@@ -102,12 +94,6 @@ export function TemplatePicker({
           onChange={s => onSelect(s?.value || '')}
           selectAllOnFocus
           value={selectedOpt}
-        />
-        <CheckboxRow
-          checked={showExperimental}
-          className="gap-2.5"
-          label="SHOW EXPERIMENTAL"
-          onCheckedChange={setShowExperimental}
         />
       </div>
     </CrtFieldset>

@@ -11,7 +11,6 @@ import { TooltipProvider } from '../components/ui/tooltip.tsx';
 import { ClientSocket } from '../lib/client-socket.ts';
 import { errorToString } from '../shared/error-to-string.ts';
 import { ClientSocketProvider } from './ClientSocketProvider.tsx';
-import { HotkeysProvider } from './HotkeyProvider.tsx';
 import { ThemeProvider } from './ThemeProvider.tsx';
 
 const queryCache = new QueryCache({
@@ -50,10 +49,8 @@ export function TastyLimaProviders({ children }: PropsWithChildren) {
     <ThemeProvider>
       <QueryClientProvider client={client}>
         <ClientSocketProvider socket={clientSocket}>
-          <HotkeysProvider>
-            <TooltipProvider>{children}</TooltipProvider>
-            <Toaster />
-          </HotkeysProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+          <Toaster />
         </ClientSocketProvider>
       </QueryClientProvider>
     </ThemeProvider>

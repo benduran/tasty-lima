@@ -7,24 +7,19 @@ import { buttonVariants } from './ui/button.tsx';
 const PRIMARY_NAV = [
   {
     href: '/instances',
-    label: 'F1 Instances',
+    label: 'Instances',
     match: (loc: string) =>
       loc === '/instances' ||
       (loc.startsWith('/instances/') && loc !== '/instances/new'),
   },
   {
     href: '/instances/new',
-    label: 'F2 New VM',
+    label: 'New VM',
     match: (loc: string) => loc === '/instances/new',
   },
   {
-    href: '/templates',
-    label: 'F3 Templates',
-    match: (loc: string) => loc.startsWith('/templates'),
-  },
-  {
     href: '/theme',
-    label: 'F9 Theme',
+    label: 'Theme',
     match: (loc: string) => loc === '/theme',
   },
 ] as const;
