@@ -1,3 +1,11 @@
+## 0.0.2-alpha.4 (2026-11-16)
+
+### 🛠️ Fixes 🛠️
+
+- fix: corrected arm linux musl target (d2f7ca09a446e8059ed7052ec28895a337d44c13)
+
+---
+
 ## 0.0.2-alpha.3 (2026-11-16)
 
 ### 🔀 Miscellaneous 🔀
