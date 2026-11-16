@@ -1,3 +1,11 @@
+## 0.0.2-alpha.6 (2026-11-16)
+
+### 🔀 Miscellaneous 🔀
+
+- chore: removed all dead code and support publishing this to npm (c713fe0742bd00aa03026a6f5c33c75063ea8df8)
+
+---
+
 ## 0.0.2-alpha.5 (2026-11-16)
 
 ### 🛠️ Fixes 🛠️

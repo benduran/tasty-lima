@@ -95,5 +95,5 @@
     "test:types": "tsc --noEmit"
   },
   "type": "module",
-  "version": "0.0.2-alpha.5"
+  "version": "0.0.2-alpha.6"
 }
