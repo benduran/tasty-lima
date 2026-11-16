@@ -100,15 +100,18 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
                   </Button>
                 )}
                 {!stopping && vm.status === 'Running' && (
-                  <Button
+                  <ConfirmButton
                     className={actionButtonClass}
+                    confirmMessage={
+                      <>Are you sure you want to shutdown {vm.name}?</>
+                    }
                     onClick={() => execShutdown({ name: vm.name })}
                     size="sm"
                     variant="outline"
                   >
                     <SquareStopIcon />
                     Shutdown
-                  </Button>
+                  </ConfirmButton>
                 )}
                 <Button
                   className={actionButtonClass}
