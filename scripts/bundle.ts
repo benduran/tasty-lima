@@ -4,7 +4,8 @@ import { build } from 'esbuild';
 /**
  * CJS is a royal pain. why this module format cannot die yet is beyond me.
  */
-const cjsShimBanner = `import { createRequire as __nodecCreateRequire } from 'node:module';
+const cjsShimBanner = `#!/usr/bin/env node
+import { createRequire as __nodecCreateRequire } from 'node:module';
 import { fileURLToPath as __nodecFileURLToPath } from 'node:url';
 import { dirname as __nodecDirname } from 'node:path';
 
