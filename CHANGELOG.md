@@ -1,3 +1,11 @@
+## 0.0.2 (2026-11-16)
+
+### 🛠️ Fixes 🛠️
+
+- fix: added correct shebang for the binfile (88e36edd09975111c3b71c51fbea09d5b9a81612)
+
+---
+
 ## 0.0.2-alpha.7 (2026-11-16)
 
 ### 📖 Docs 📖
