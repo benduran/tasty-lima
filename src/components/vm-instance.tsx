@@ -84,21 +84,9 @@ export function VMInstance({ instance: _instance }: VMInstanceProps) {
         </Button>
         <Link
           className={cn(buttonVariants({ variant: 'outline' }))}
-          href={uiRoutes.instanceConfig('TODO')}
+          href={uiRoutes.editVm('TODO')}
         >
           Config
-        </Link>
-        <Link
-          className={cn(buttonVariants({ variant: 'outline' }))}
-          href={uiRoutes.instanceLogs('TODO')}
-        >
-          Logs
-        </Link>
-        <Link
-          className={cn(buttonVariants({ variant: 'outline' }))}
-          href={uiRoutes.instanceSsh('TODO')}
-        >
-          SSH
         </Link>
         <Button
           aria-describedby="clone-hint"

@@ -105,7 +105,7 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
                     confirmMessage={
                       <>Are you sure you want to shutdown {vm.name}?</>
                     }
-                    onClick={() => execShutdown({ name: vm.name })}
+                    onConfirm={() => execShutdown({ name: vm.name })}
                     size="sm"
                     variant="outline"
                   >
