@@ -362,6 +362,7 @@ export async function ensureLimaCtl(): Promise<string> {
       { command: binaryFileName },
     );
   }
+  await fs.mkdir(limaInstallDir(LIMA_VERSION), { recursive: true });
   await cleanupOldLimaVersions();
   return await downloadLimaCtl();
 }
