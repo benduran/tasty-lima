@@ -28,6 +28,7 @@
     },
     "build:cli:all": {
       "dependsOn": [
+        "build:cli",
         "build:cli:linux:x64",
         "build:cli:linux:x64-musl",
         "build:cli:linux:arm64",
@@ -104,6 +105,10 @@
       ]
     },
     "build:ui": {
+      "dependsOn": [
+        "gen:constants",
+        "gen:lima-types"
+      ],
       "description": "vite build -> dist/",
       "inputs": [
         "index.html",
@@ -138,7 +143,8 @@
     "dev:ui": {
       "cache": false,
       "dependsOn": [
-        "gen:constants"
+        "gen:constants",
+        "gen:lima-types"
       ],
       "description": "Vite dev server (persistent)",
       "persistent": true
@@ -170,7 +176,14 @@
       ]
     },
     "gen:lima-types": {
-      "cache": false
+      "inputs": [
+        "scripts/lima-types/**",
+        "scripts/generate-lima-types.ts",
+        "src/shared/constants.ts"
+      ],
+      "outputs": [
+        "src/shared/limactl-types.gen.ts"
+      ]
     },
     "preview": {
       "cache": false,
@@ -188,6 +201,10 @@
       "description": "biome check ."
     },
     "test:types": {
+      "dependsOn": [
+        "gen:constants",
+        "gen:lima-types"
+      ],
       "description": "tsc --noEmit",
       "inputs": [
         "src/**/*.ts",
