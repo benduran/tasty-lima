@@ -3,8 +3,11 @@
   "bin": {
     "tasty-lima": "./dist/tasty-lima.js"
   },
+  "bugs": {
+    "url": "https://github.com/benduran/tasty-lima/issues"
+  },
   "dependencies": {},
-  "description": "",
+  "description": "A quick and easy-to-use UI for creating and interacting with Lima VMs. Available as a standalone, self-contained CLI binary — no Node.js or Lima preinstalled — that boots a local web UI for managing your VMs.",
   "devDependencies": {
     "@base-ui/react": "1.9.0",
     "@better-builds/lets-version": "1.6.5",
@@ -69,10 +72,21 @@
   "files": [
     "dist/tasty-lima.js"
   ],
-  "keywords": [],
+  "homepage": "https://github.com/benduran/tasty-lima#readme",
+  "keywords": [
+    "lima",
+    "lima-vm",
+    "vm",
+    "cli",
+    "gui"
+  ],
   "license": "MIT",
   "name": "tasty-lima",
   "packageManager": "pnpm@12.16.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benduran/tasty-lima.git"
+  },
   "scripts": {
     "build:cli": "tsx ./scripts/bundle.ts",
     "build:cli:linux:arm64": "nodec --entry ./src/cli/tasty-lima.ts --name tasty-lima --nodeVersion 26.12.0 --outDir ./dist --target linux-arm64",
