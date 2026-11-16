@@ -1,3 +1,11 @@
+## 0.0.2-alpha.3 (2026-11-16)
+
+### 🔀 Miscellaneous 🔀
+
+- chore: added github release script (00db686a1e2568d2f342a7620633b3450a0277bc)
+
+---
+
 ## 0.0.2-alpha.2 (2026-11-16)
 
 ### ✨ Features ✨
