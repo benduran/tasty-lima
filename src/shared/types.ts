@@ -71,6 +71,12 @@ export const MachineInfoSchema = z.object({
 });
 export type MachineInfo = z.infer<typeof MachineInfoSchema>;
 
+export const LimaNetworkDefinitionSchema = z.object({
+  mode: z.string().nonempty(),
+  name: z.string().nonempty(),
+});
+export type LimaNetworkDefinition = z.infer<typeof LimaNetworkDefinitionSchema>;
+
 export const RequestIdSchema = z.uuidv4();
 
 const BaseWebsocketSchema = z.object({
@@ -178,6 +184,17 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
     data: MachineInfoSchema,
     sender: z.literal('server'),
     type: z.literal('response-query-machine-info'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    sender: z.literal('client'),
+    type: z.literal('request-query-networks'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: LimaNetworkDefinitionSchema.array(),
+    sender: z.literal('server'),
+    type: z.literal('response-query-networks'),
   }),
   z.object({
     ...BaseWebsocketSchema.shape,
@@ -375,6 +392,7 @@ export const WsResponseMap = {
   'request-query-instance-operations': 'response-query-instance-operations',
   'request-query-instances': 'response-query-instances',
   'request-query-machine-info': 'response-query-machine-info',
+  'request-query-networks': 'response-query-networks',
   'request-query-public-templates': 'response-query-public-templates',
   'request-shutdown-instance': 'response-shutdown-instance',
 } as const satisfies WsResponseTypeShape;

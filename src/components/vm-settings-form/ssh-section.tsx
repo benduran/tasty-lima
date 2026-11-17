@@ -22,7 +22,7 @@ export function SshSection({
   user,
 }: SshSectionProps) {
   return (
-    <CrtSection contentClassName="flex flex-col gap-4 p-5" title="[5] SSH">
+    <CrtSection contentClassName="flex flex-col gap-4 p-5" title="[6] SSH">
       <div className="flex flex-wrap gap-x-8 gap-y-3">
         <CheckboxRow
           checked={ssh?.forwardAgent}
@@ -37,6 +37,11 @@ export function SshSection({
           onCheckedChange={onLoadDotSSHPubKeysChange}
         />
       </div>
+      <p className="text-phosphor-dim text-xs tracking-tight uppercase">
+        forwarding the ssh agent exposes your host machine's ssh keys to
+        everything running in this vm while connected. recommend using a vm-only
+        key.
+      </p>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-x-5 gap-y-5">
         <LabeledField htmlFor="ssh-port" label="SSH PORT">
           <Input

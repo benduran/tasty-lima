@@ -8,6 +8,7 @@ import { useCreateInstance } from '../../hooks/use-create-instance.ts';
 import { useEditInstance } from '../../hooks/use-edit-instance.ts';
 import { useQueryInstance } from '../../hooks/use-query-instance.ts';
 import { useQueryMachineInfo } from '../../hooks/use-query-machine-info.ts';
+import { useQueryNetworks } from '../../hooks/use-query-networks.ts';
 import { useQueryPublicTemplates } from '../../hooks/use-query-public-templates.ts';
 import { withExistingQuery } from '../../lib/with-existing-query.ts';
 import { uiRoutes } from '../../routes/index.ts';
@@ -20,6 +21,8 @@ import { errorToString } from '../../shared/error-to-string.ts';
 import type {
   LimaMount,
   LimaMountType,
+  LimaNetwork,
+  LimaNetworkDefinition,
   LimaSSH,
   LimaUser,
   LimaVMType,
@@ -31,6 +34,7 @@ import {
   CreateLimaVMSchema,
   LimaArchSchema,
   LimaMountTypeSchema,
+  LimaNetworkModes,
   LimaVMTypeSchema,
 } from '../../shared/types.ts';
 import {
@@ -38,6 +42,7 @@ import {
   GiBStringToBareNumberStr,
   isNullOrUndefined,
   machineInfoArchToLimaArch,
+  omit,
   templateLocator,
   templateNameFromBase,
   withValidatedField,
@@ -86,6 +91,45 @@ export type UseVmSettingsOpts = {
   vmToEdit?: Nullish<string>;
 };
 
+function userV2NetworkNames(definitions: Nullish<LimaNetworkDefinition[]>) {
+  if (isNullOrUndefined(definitions)) {
+    return new Set<string>([LimaNetworkModes.UserV2]);
+  }
+  return new Set(
+    definitions
+      .filter(definition => definition.mode === LimaNetworkModes.UserV2)
+      .map(definition => definition.name),
+  );
+}
+
+function canBlockHostLoopback(
+  vmType: Nullish<LimaVMType>,
+  networks: Nullish<LimaNetwork[]>,
+  userV2Networks: ReadonlySet<string>,
+) {
+  return (
+    vmType === 'vz' &&
+    !networks?.some(
+      network =>
+        !isNullOrUndefined(network.lima) && userV2Networks.has(network.lima),
+    )
+  );
+}
+
+function withSupportedNetworkOpts(
+  config: LimaYAMLInput,
+  userV2Networks: ReadonlySet<string>,
+): LimaYAMLInput {
+  if (canBlockHostLoopback(config.vmType, config.networks, userV2Networks)) {
+    return config;
+  }
+  if (isNullOrUndefined(config.networkOpts?.hostLoopback)) return config;
+
+  const networkOpts = omit(config.networkOpts, ['hostLoopback']);
+  if (Object.keys(networkOpts).length > 0) return { ...config, networkOpts };
+  return omit(config, ['networkOpts']);
+}
+
 function toFormDraft(config: LimaYAMLInput): LimaYAMLInput {
   return {
     ...config,
@@ -98,6 +142,11 @@ function toFormDraft(config: LimaYAMLInput): LimaYAMLInput {
 export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
   /** queries */
   const { data: machineInfo } = useQueryMachineInfo();
+  const { data: networkDefinitions } = useQueryNetworks();
+  const userV2Networks = useMemo(
+    () => userV2NetworkNames(networkDefinitions),
+    [networkDefinitions],
+  );
   const { data: templates, isPending: templatesPending } =
     useQueryPublicTemplates();
   const { isPending: isCreating, mutate: createInstance } = useCreateInstance();
@@ -132,6 +181,8 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
   const [provision, setProvision] = useNewVMStore('config.provision');
   const [ssh, setSSH] = useNewVMStore('config.ssh');
   const [user, setUser] = useNewVMStore('config.user');
+  const [networkOpts, setNetworkOpts] = useNewVMStore('config.networkOpts');
+  const [networks] = useNewVMStore('config.networks');
   const [config, setConfig] = useNewVMStore('config');
   const [configMode, setConfigMode] = useNewVMStore('configMode');
   const [rawYaml, setRawYaml] = useNewVMStore('rawYaml');
@@ -252,15 +303,19 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
   );
 
   const buildSubmitConfig = useCallback(
-    (): LimaYAMLInput => ({
-      ...config,
-      disk: bareNumberStrToGiBStr(config?.disk),
-      memory: bareNumberStrToGiBStr(config?.memory),
-      provision: (config?.provision ?? []).filter(
-        provisionEntry => !isPlaceholderProvision(provisionEntry),
+    (): LimaYAMLInput =>
+      withSupportedNetworkOpts(
+        {
+          ...config,
+          disk: bareNumberStrToGiBStr(config?.disk),
+          memory: bareNumberStrToGiBStr(config?.memory),
+          provision: (config?.provision ?? []).filter(
+            provisionEntry => !isPlaceholderProvision(provisionEntry),
+          ),
+        },
+        userV2Networks,
       ),
-    }),
-    [config],
+    [config, userV2Networks],
   );
 
   const switchMode = useCallback(
@@ -464,6 +519,21 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
     [setSSH, sshDraft],
   );
 
+  const hostLoopbackBlockable = canBlockHostLoopback(
+    vmType,
+    networks,
+    userV2Networks,
+  );
+  const allowHostLoopback = Boolean(
+    !hostLoopbackBlockable || networkOpts?.hostLoopback,
+  );
+
+  const onAllowHostLoopbackChange = useCallback(
+    (allow: boolean) =>
+      setNetworkOpts(prev => ({ ...prev, hostLoopback: allow })),
+    [setNetworkOpts],
+  );
+
   const onLoadDotSSHPubKeysChange = useCallback(
     (loadDotSSHPubKeys: boolean) => setSSH({ ...sshDraft, loadDotSSHPubKeys }),
     [setSSH, sshDraft],
@@ -553,6 +623,7 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
   useEffect(() => () => resetNewVmStore(), [resetNewVmStore]);
 
   return {
+    allowHostLoopback,
     /** image section */
     arch,
     /** mode + validation */
@@ -563,6 +634,7 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
     currentMachineArch,
     disk,
     editing,
+    hostLoopbackBlockable,
     isCreating,
     machineInfo,
     /** mounts section */
@@ -578,6 +650,7 @@ export function useVmSettings({ vmToEdit }: UseVmSettingsOpts) {
     onAddPortForward,
     /** provision scripts section */
     onAddScript,
+    onAllowHostLoopbackChange,
     onArchChange,
     onCancel: handleCancel,
     onChangeMount,

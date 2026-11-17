@@ -11,7 +11,11 @@ export type NewVMUiState = {
 export type NewVMState = CreateLimaVM & NewVMUiState;
 
 const store = new Tubular<NewVMState>({
-  config: { ssh: { forwardAgent: true } },
+  config: {
+    mounts: null,
+    networkOpts: { hostLoopback: false },
+    ssh: { forwardAgent: false },
+  },
   configMode: 'form',
   name: '',
   rawYaml: '',

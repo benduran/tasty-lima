@@ -2,21 +2,24 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 import { execa } from 'execa';
-import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 import type { LimaTemplateSummary } from '../../shared/codecs.ts';
-import { LimaYAMLInputCodec } from '../../shared/codecs.ts';
 import type {
   CreateLimaVM,
   EditLimaVM,
   LimaInstance,
-  LimaYAMLInput,
+  LimaNetworkDefinition,
   LogLevel,
   LogLine,
   Nullish,
 } from '../../shared/types.ts';
-import { LimaFilenames, LimaInstanceSchema } from '../../shared/types.ts';
 import {
+  LimaFilenames,
+  LimaInstanceSchema,
+  LimaNetworkDefinitionSchema,
+} from '../../shared/types.ts';
+import {
+  arrayHasItems,
   byteSizeToBytes,
   isNullOrUndefined,
   isObject,
@@ -26,6 +29,12 @@ import { TASTY_LIMA_TEMP } from '../constants.ts';
 import { logger } from '../logger.ts';
 import { getLimaBinaryPath } from './ensureLimaCtl.ts';
 import { getQemuPathDirs } from './ensureQemuLinux.ts';
+import type { CopyConfigOnDisk } from './limaYaml.ts';
+import {
+  instanceYamlPath,
+  readInstanceYamlFile,
+  writeResolvedConfig,
+} from './limaYaml.ts';
 
 type LogLineSink = {
   end: () => void;
@@ -43,7 +52,7 @@ type LimaExecOpts = Partial<{
 
 function limaChildEnv(): NodeJS.ProcessEnv {
   const qemuPathDirs = getQemuPathDirs();
-  if (qemuPathDirs.length === 0) return {};
+  if (!arrayHasItems(qemuPathDirs)) return {};
   return {
     PATH: [...qemuPathDirs, process.env.PATH ?? ''].join(path.delimiter),
   };
@@ -117,6 +126,15 @@ export async function getInstanceByName(
   return instances.find(instance => instance.name === name) ?? null;
 }
 
+export async function listNetworks(): Promise<LimaNetworkDefinition[]> {
+  const result = await limaExec(['network', 'list', '--json']);
+
+  return result
+    .split('\n')
+    .filter(Boolean)
+    .map(line => LimaNetworkDefinitionSchema.parse(JSON.parse(line)));
+}
+
 export async function listTemplates(): Promise<LimaTemplateSummary[]> {
   const result = await limaExec(['create', '--list-templates']);
   const names = result
@@ -130,55 +148,8 @@ export async function listTemplates(): Promise<LimaTemplateSummary[]> {
   }));
 }
 
-const ALTERNATE_GUEST_HOME_BASENAME = '{{.User}}.linux';
-
-const FilledHomeAndMountsSchema = z.object({
-  mounts: z.array(z.object({ mountPoint: z.string().nullish() })).nullish(),
-  user: z.object({ home: z.string().nullish() }).nullish(),
-});
-
-async function copyConfigOnDisk(
-  configFile: string,
-  mode: '--embed-all' | '--fill',
-) {
-  return await limaExec(['tmpl', 'copy', mode, configFile, '-']);
-}
-
-async function resolveConfigOnDisk(
-  configFile: string,
-  original: LimaYAMLInput,
-): Promise<string> {
-  const resolved: LimaYAMLInput = {
-    ...LimaYAMLInputCodec.decode(
-      await copyConfigOnDisk(configFile, '--embed-all'),
-    ),
-    mounts: original.mounts ?? [],
-  };
-  const resolvedYaml = LimaYAMLInputCodec.encode(resolved);
-  if (original.user?.home) return resolvedYaml;
-
-  await fs.writeFile(configFile, resolvedYaml);
-  const { mounts, user } = FilledHomeAndMountsSchema.parse(
-    parseYaml(await copyConfigOnDisk(configFile, '--fill')),
-  );
-  const guestHome = user?.home;
-  if (!guestHome || !mounts?.some(mount => mount.mountPoint === guestHome)) {
-    return resolvedYaml;
-  }
-
-  const home = path.posix.join(
-    path.posix.dirname(guestHome),
-    ALTERNATE_GUEST_HOME_BASENAME,
-  );
-  logger.info('moving the guest home because a mount occupies it', {
-    guestHome,
-    home,
-  });
-  return LimaYAMLInputCodec.encode({
-    ...resolved,
-    user: { ...resolved.user, home },
-  });
-}
+const copyConfigOnDisk: CopyConfigOnDisk = async (configFile, mode) =>
+  await limaExec(['tmpl', 'copy', mode, configFile, '-']);
 
 /**
  * limactl writes all of its logs to stderr via logrus, in either its bracket
@@ -285,7 +256,7 @@ function createLogLineSink(onLines?: OnLogLines): LogLineSink {
   };
 
   const emit = (lines: UnsequencedLogLine[]) => {
-    if (lines.length > 0) onLines?.(lines);
+    if (arrayHasItems(lines)) onLines?.(lines);
   };
 
   const consume = (text: string) => {
@@ -375,11 +346,11 @@ export async function createInstance(
   onLines?: OnLogLines,
 ): Promise<LimaInstance> {
   return await withTempDir('create-vm-', async dir => {
-    const configFile = path.join(dir, LimaFilenames.LimaYAML);
-    await fs.writeFile(configFile, LimaYAMLInputCodec.encode(opts.config));
-
-    const configYaml = await resolveConfigOnDisk(configFile, opts.config);
-    await fs.writeFile(configFile, configYaml);
+    const { configFile, configYaml } = await writeResolvedConfig(
+      dir,
+      opts.config,
+      copyConfigOnDisk,
+    );
 
     logger.info(`creating lima instance ${opts.name}`, { configYaml });
     const args = [
@@ -431,19 +402,13 @@ export async function shutdownInstance(name: string, onLines?: OnLogLines) {
   return name;
 }
 
-export async function readInstanceConfig(instanceDir: string) {
-  return LimaYAMLInputCodec.decode(
-    await fs.readFile(path.join(instanceDir, LimaFilenames.LimaYAML), 'utf-8'),
-  );
-}
-
 export async function readInstanceYaml(name: string) {
   const instance = await getInstanceByName(name);
   if (!instance) {
     throw new Error(`unable to read "${name}" because it doesn't exist`);
   }
 
-  return fs.readFile(path.join(instance.dir, LimaFilenames.LimaYAML), 'utf-8');
+  return await readInstanceYamlFile(instance.dir);
 }
 
 export async function editInstance(
@@ -463,11 +428,10 @@ export async function editInstance(
   }
 
   await withTempDir('edit-vm-', async dir => {
-    const configFile = path.join(dir, LimaFilenames.LimaYAML);
-    await fs.writeFile(configFile, LimaYAMLInputCodec.encode(config));
-    await fs.writeFile(
-      configFile,
-      await resolveConfigOnDisk(configFile, config),
+    const { configFile } = await writeResolvedConfig(
+      dir,
+      config,
+      copyConfigOnDisk,
     );
 
     await limaExec(
@@ -478,10 +442,7 @@ export async function editInstance(
     if (instance.status === 'Running') {
       await shutdownInstance(name, onLines);
     }
-    await fs.copyFile(
-      configFile,
-      path.join(instance.dir, LimaFilenames.LimaYAML),
-    );
+    await fs.copyFile(configFile, instanceYamlPath(instance.dir));
   });
 
   if (!startAfterEdit) return { degraded: false, name };

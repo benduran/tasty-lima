@@ -27,7 +27,10 @@ const (
 	limatypePkg  = limaModule + "/pkg/limatype"
 	filenamesPkg = limatypePkg + "/filenames"
 	storePkg     = limaModule + "/pkg/store"
+	networksPkg  = limaModule + "/pkg/networks"
 )
+
+const networkModePrefix = "Mode"
 
 // `limactl list` prints store.FormatData, which embeds limatype.Instance and
 // adds a few host fields, so the root is named after the instance.
@@ -51,8 +54,9 @@ type Output struct {
 	Version string `json:"version"`
 	Enums   []Enum `json:"enums"`
 	// Defs are in dependency order, so the root is last.
-	Defs      []Def      `json:"defs"`
-	Filenames []Constant `json:"filenames"`
+	Defs         []Def      `json:"defs"`
+	Filenames    []Constant `json:"filenames"`
+	NetworkModes []Constant `json:"networkModes"`
 }
 
 type Constant struct {
@@ -124,7 +128,7 @@ func main() {
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
 			packages.NeedSyntax | packages.NeedImports | packages.NeedModule,
 	}
-	pkgs, err := packages.Load(cfg, limatypePkg, filenamesPkg, storePkg)
+	pkgs, err := packages.Load(cfg, limatypePkg, filenamesPkg, storePkg, networksPkg)
 	if err != nil {
 		fail("loading lima: %v", err)
 	}
@@ -156,6 +160,10 @@ func main() {
 	// so pointer-receiver marshalers (like *Instance.MarshalJSON) don't apply
 	g.node(root.Type(), false, false)
 	g.out.Filenames = stringConstants(byPath[filenamesPkg].Types)
+	g.out.NetworkModes = withoutPrefix(stringConstants(byPath[networksPkg].Types), networkModePrefix)
+	if len(g.out.NetworkModes) == 0 {
+		fail("no %s* constants found in %s", networkModePrefix, networksPkg)
+	}
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
@@ -549,6 +557,18 @@ func stringConstants(pkg *types.Package) []Constant {
 			continue
 		}
 		out = append(out, Constant{Name: name, Value: constant.StringVal(c.Val())})
+	}
+	return out
+}
+
+func withoutPrefix(constants []Constant, prefix string) []Constant {
+	out := []Constant{}
+	for _, c := range constants {
+		name, ok := strings.CutPrefix(c.Name, prefix)
+		if !ok || name == "" {
+			continue
+		}
+		out = append(out, Constant{Name: name, Value: c.Value})
 	}
 	return out
 }

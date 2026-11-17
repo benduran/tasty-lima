@@ -18,7 +18,7 @@ export function ProvisionScriptsSection({
   return (
     <CrtSection
       contentClassName="flex flex-col gap-4 p-5"
-      title="[6] PROVISION SCRIPTS"
+      title="[7] PROVISION SCRIPTS"
     >
       <ProvisionScriptsTable
         onAddScript={onAddScript}

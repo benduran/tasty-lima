@@ -1,6 +1,10 @@
 import { kebabCase } from 'change-case';
 import { z } from 'zod';
-import { LimaPortForwardSchema, LimaYAMLSchema } from './limactl-types.gen.ts';
+import {
+  LimaMountSchema,
+  LimaPortForwardSchema,
+  LimaYAMLSchema,
+} from './limactl-types.gen.ts';
 
 /**
  * Schemas for the LimaYAML a VM creator sends to `limactl create`, layered on
@@ -46,6 +50,7 @@ export type PortForwardInput = z.infer<typeof PortForwardInputSchema>;
  * the port-forward ranges relaxed.
  */
 export const LimaYAMLInputSchema = LimaYAMLSchema.extend({
+  mounts: z.array(LimaMountSchema).nullish(),
   portForwards: z.array(PortForwardInputSchema).optional(),
 });
 export type LimaYAMLInput = z.infer<typeof LimaYAMLInputSchema>;

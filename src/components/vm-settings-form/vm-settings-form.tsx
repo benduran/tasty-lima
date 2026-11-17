@@ -3,6 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert.tsx';
 import { Button } from '../ui/button.tsx';
 import { ImageSection } from './image-section.tsx';
 import { MountsSection } from './mounts-section.tsx';
+import { NetworkSection } from './network-section.tsx';
 import { PortOverridesSection } from './port-overrides-section.tsx';
 import { ProvisionScriptsSection } from './provision-scripts-section.tsx';
 import { ResourcesSection } from './resources-section.tsx';
@@ -20,6 +21,7 @@ type VMSettingsFormProps = UseVmSettingsOpts;
 export function VMSettingsForm({ vmToEdit }: VMSettingsFormProps) {
   /** hooks */
   const {
+    allowHostLoopback,
     arch,
     canCreate,
     configMode,
@@ -27,6 +29,7 @@ export function VMSettingsForm({ vmToEdit }: VMSettingsFormProps) {
     currentMachineArch,
     disk,
     editing,
+    hostLoopbackBlockable,
     machineInfo,
     mountHostHome,
     mountType,
@@ -37,6 +40,7 @@ export function VMSettingsForm({ vmToEdit }: VMSettingsFormProps) {
     onAddMount,
     onAddPortForward,
     onAddScript,
+    onAllowHostLoopbackChange,
     onArchChange,
     onCancel,
     onChangeMount,
@@ -154,6 +158,11 @@ export function VMSettingsForm({ vmToEdit }: VMSettingsFormProps) {
               onChangePortForward={onChangePortForward}
               onRemovePortForward={onRemovePortForward}
               portForwards={portForwards}
+            />
+            <NetworkSection
+              allowHostLoopback={allowHostLoopback}
+              hostLoopbackBlockable={hostLoopbackBlockable}
+              onAllowHostLoopbackChange={onAllowHostLoopbackChange}
             />
             <SshSection
               onForwardAgentChange={onForwardAgentChange}

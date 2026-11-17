@@ -2,17 +2,11 @@
   "$schema": "https://turborepo.dev/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": [
-        "clean",
-        "build:ui",
-        "build:cli"
-      ],
+      "dependsOn": ["clean", "build:ui", "build:cli"],
       "description": "Build the UI and the CLI for the current machine"
     },
     "build:all": {
-      "dependsOn": [
-        "build:cli:all"
-      ],
+      "dependsOn": ["build:cli:all"],
       "description": "Build the UI, then ALL CLI targets"
     },
     "build:cli": {
@@ -45,9 +39,7 @@
         "gen:constants",
         "gen:lima-types"
       ],
-      "outputs": [
-        "dist/tasty-lima-linux-arm64"
-      ]
+      "outputs": ["dist/tasty-lima-linux-arm64"]
     },
     "build:cli:linux:arm64-musl": {
       "dependsOn": [
@@ -56,9 +48,7 @@
         "gen:constants",
         "gen:lima-types"
       ],
-      "outputs": [
-        "dist/tasty-lima-linux-arm64-musl"
-      ]
+      "outputs": ["dist/tasty-lima-linux-arm64-musl"]
     },
     "build:cli:linux:x64": {
       "dependsOn": [
@@ -67,9 +57,7 @@
         "gen:constants",
         "gen:lima-types"
       ],
-      "outputs": [
-        "dist/tasty-lima-linux-x64"
-      ]
+      "outputs": ["dist/tasty-lima-linux-x64"]
     },
     "build:cli:linux:x64-musl": {
       "dependsOn": [
@@ -78,9 +66,7 @@
         "gen:constants",
         "gen:lima-types"
       ],
-      "outputs": [
-        "dist/tasty-lima-linux-x64-musl"
-      ]
+      "outputs": ["dist/tasty-lima-linux-x64-musl"]
     },
     "build:cli:mac:arm64": {
       "dependsOn": [
@@ -89,9 +75,7 @@
         "gen:constants",
         "gen:lima-types"
       ],
-      "outputs": [
-        "dist/tasty-lima-macos-arm64"
-      ]
+      "outputs": ["dist/tasty-lima-macos-arm64"]
     },
     "build:cli:win:x64": {
       "dependsOn": [
@@ -100,15 +84,10 @@
         "gen:constants",
         "gen:lima-types"
       ],
-      "outputs": [
-        "dist/tasty-lima-win-x64.exe"
-      ]
+      "outputs": ["dist/tasty-lima-win-x64.exe"]
     },
     "build:ui": {
-      "dependsOn": [
-        "gen:constants",
-        "gen:lima-types"
-      ],
+      "dependsOn": ["gen:constants", "gen:lima-types"],
       "description": "vite build -> dist/",
       "inputs": [
         "index.html",
@@ -117,35 +96,24 @@
         "tsconfig.json",
         "components.json"
       ],
-      "outputs": [
-        "dist/**"
-      ]
+      "outputs": ["dist/**"]
     },
     "clean": {
       "cache": false
     },
     "dev": {
       "description": "Boot the UI dev server and the CLI helper together",
-      "with": [
-        "dev:ui",
-        "dev:cli"
-      ]
+      "with": ["dev:ui", "dev:cli"]
     },
     "dev:cli": {
       "cache": false,
-      "dependsOn": [
-        "gen:constants",
-        "gen:lima-types"
-      ],
+      "dependsOn": ["gen:constants", "gen:lima-types"],
       "description": "tsx watch of the CLI entrypoint (persistent)",
       "persistent": true
     },
     "dev:ui": {
       "cache": false,
-      "dependsOn": [
-        "gen:constants",
-        "gen:lima-types"
-      ],
+      "dependsOn": ["gen:constants", "gen:lima-types"],
       "description": "Vite dev server (persistent)",
       "persistent": true
     },
@@ -154,26 +122,17 @@
       "description": "biome autofixer — mutates the tree, never cache this"
     },
     "gen:constants": {
-      "inputs": [
-        "package.json",
-        "scripts/inject-app-version.ts"
-      ],
-      "outputs": [
-        "src/shared/constants.gen.ts"
-      ]
+      "inputs": ["package.json", "scripts/inject-app-version.ts"],
+      "outputs": ["src/shared/constants.gen.ts"]
     },
     "gen:fake-fs": {
-      "dependsOn": [
-        "build:ui"
-      ],
+      "dependsOn": ["build:ui"],
       "inputs": [
         "dist/**",
         "scripts/inline-ui.ts",
         "src/cli/fake-fs/fake-fs.ts"
       ],
-      "outputs": [
-        "src/cli/fake-fs/content.gen.ts"
-      ]
+      "outputs": ["src/cli/fake-fs/content.gen.ts"]
     },
     "gen:lima-types": {
       "inputs": [
@@ -181,9 +140,7 @@
         "scripts/generate-lima-types.ts",
         "src/shared/constants.ts"
       ],
-      "outputs": [
-        "src/shared/limactl-types.gen.ts"
-      ]
+      "outputs": ["src/shared/limactl-types.gen.ts"]
     },
     "preview": {
       "cache": false,
@@ -191,20 +148,14 @@
       "persistent": true
     },
     "test": {
-      "dependsOn": [
-        "test:lint",
-        "test:types"
-      ],
+      "dependsOn": ["test:lint", "test:types"],
       "description": "Lint AND typecheck"
     },
     "test:lint": {
       "description": "biome check ."
     },
     "test:types": {
-      "dependsOn": [
-        "gen:constants",
-        "gen:lima-types"
-      ],
+      "dependsOn": ["gen:constants", "gen:lima-types"],
       "description": "tsc --noEmit",
       "inputs": [
         "src/**/*.ts",

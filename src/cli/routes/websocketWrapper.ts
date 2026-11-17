@@ -16,6 +16,7 @@ import {
   ensureLimaCtl,
   getLimaBinaryPath,
   listInstances,
+  listNetworks,
   listTemplates,
 } from '../limactl/index.ts';
 import {
@@ -23,10 +24,10 @@ import {
   deleteInstance,
   editInstance,
   getInstanceByName,
-  readInstanceConfig,
   readInstanceYaml,
   shutdownInstance,
 } from '../limactl/limaExec.ts';
+import { readInstanceConfig } from '../limactl/limaYaml.ts';
 import { getMachineInfo } from '../machine/get-info.ts';
 
 function requestIdOf(text: string) {
@@ -183,6 +184,13 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
         case 'request-query-machine-info':
           return send({
             data: await getMachineInfo(),
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
+        case 'request-query-networks':
+          return send({
+            data: await listNetworks(),
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),

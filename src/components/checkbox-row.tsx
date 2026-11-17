@@ -18,11 +18,19 @@ export function CheckboxRow({
     <span
       className={cn(
         'flex min-h-11 cursor-pointer items-center gap-3',
+        checkbox.disabled && 'cursor-not-allowed',
         className,
       )}
     >
       <Checkbox id={internalId} {...checkbox} />
-      <label htmlFor={internalId}>{label}</label>
+      <label
+        className={cn(
+          checkbox.disabled && 'cursor-not-allowed text-phosphor-dim uppercase',
+        )}
+        htmlFor={internalId}
+      >
+        {label}
+      </label>
       {hint && <span className="text-phosphor-dim">{hint}</span>}
     </span>
   );

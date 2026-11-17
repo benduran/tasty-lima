@@ -21,6 +21,7 @@ type LimaTypes = {
   defs: Def[];
   enums: Enum[];
   filenames: Constant[];
+  networkModes: Constant[];
   version: string;
 };
 type Constant = { name: string; value: string };
@@ -251,6 +252,12 @@ function render(types: LimaTypes) {
     ),
     'export const LimaFilenames = {',
     ...types.filenames.map(({ name, value }) => `  ${name}: ${quote(value)},`),
+    '} as const;',
+    '',
+    'export const LimaNetworkModes = {',
+    ...types.networkModes.map(
+      ({ name, value }) => `  ${name}: ${quote(value)},`,
+    ),
     '} as const;',
     '',
   ].join('\n');
