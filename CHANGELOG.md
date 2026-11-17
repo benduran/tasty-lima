@@ -1,3 +1,11 @@
+## 0.0.5 (2026-11-17)
+
+### 📖 Docs 📖
+
+- docs: updated readme with screenshots and an animated gif (08fcfee2f2e88f3af7c11be607fedf45d3b757e6)
+
+---
+
 ## 0.0.4 (2026-11-17)
 
 ### 🛠️ Fixes 🛠️
