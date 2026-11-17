@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const CLIArgsSchema = z.object({
+  allowOrigin: z.url().optional(),
   hostname: z.hostname(),
   noOpen: z.boolean(),
   noUI: z.boolean(),

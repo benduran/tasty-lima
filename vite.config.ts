@@ -2,7 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-import { SERVER_PORT } from './src/shared/constants.ts';
+import { SERVER_PORT, SERVER_PORT_DEV } from './src/shared/constants.ts';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -15,7 +15,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         changeOrigin: true,
-        target: 'http://localhost:60011',
+        target: `http://127.0.0.1:${SERVER_PORT_DEV}`,
         ws: true,
       },
     },

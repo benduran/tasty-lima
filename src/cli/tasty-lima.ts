@@ -8,6 +8,11 @@ async function setup() {
   const yargs = createCLI(process.argv.slice(2));
 
   const { _, ...rest } = await yargs
+    .option('allowOrigin', {
+      description:
+        'an extra browser Origin allowed to call the tasty-lima API, e.g. the Vite dev server. you probably will not need this (it is a utility for working on tasty-lima)',
+      type: 'string',
+    })
     .option('hostname', {
       default: '127.0.0.1',
       description:

@@ -1,8 +1,11 @@
 import { Buffer } from 'node:buffer';
 import type { Context, Hono } from 'hono';
 import { getMimeType } from 'hono/utils/mime';
+import { apiRoutes } from '../../shared/routes.ts';
 import type { FakeFsEntry } from '../fake-fs/fake-fs.ts';
 import type { CLIArgs } from '../schema.ts';
+import type { ApiAuthOpts } from './api-auth.ts';
+import { apiAuth } from './api-auth.ts';
 import { WEBSOCKET_connect } from './WEBSOCKET_connect.ts';
 
 const relPathToAbsolutePathFragment = (possibleRelPath: string) => {
@@ -11,7 +14,11 @@ const relPathToAbsolutePathFragment = (possibleRelPath: string) => {
   return `/${replaced.replace(/^\.?\//, '')}`;
 };
 
-export async function bindAll(server: Hono, { noUI }: Pick<CLIArgs, 'noUI'>) {
+type BindAllOpts = Pick<CLIArgs, 'noUI'> & { auth: ApiAuthOpts };
+
+export async function bindAll(server: Hono, { auth, noUI }: BindAllOpts) {
+  server.use(`${apiRoutes.base()}/*`, apiAuth(auth));
+
   const handlers = [WEBSOCKET_connect];
 
   for (const bind of handlers) {

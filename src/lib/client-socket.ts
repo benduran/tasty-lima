@@ -1,5 +1,6 @@
 import Sockette from 'sockette';
 import { v4 as uuid } from 'uuid';
+import { API_WEBSOCKET_PROTOCOL } from '../shared/constants.ts';
 import { errorToString } from '../shared/error-to-string.ts';
 import { apiRoutes } from '../shared/routes.ts';
 import type { Nullish, WebSocketMessage } from '../shared/types.ts';
@@ -8,12 +9,19 @@ import {
   WebSocketMessageCodec,
 } from '../shared/types.ts';
 import { safeJsonParse } from '../shared/util.ts';
+import { apiToken } from './api-token.ts';
 
 function fullWebsocketUrl() {
   const { host, protocol } = window.location;
   const wsProtocol = `ws${protocol.endsWith('s') ? 's' : ''}://`;
 
   return `${wsProtocol}${host}${apiRoutes.websocket()}`;
+}
+
+function websocketProtocols() {
+  const protocols: string[] = [API_WEBSOCKET_PROTOCOL];
+  if (apiToken) protocols.push(apiToken);
+  return protocols;
 }
 
 const NON_RECONNECTING_CLOSE_CODES = new Set([1000, 1001, 1005]);
@@ -45,6 +53,7 @@ export class ClientSocket {
       onerror: this.errored,
       onmessage: this.receive,
       onopen: this.opened,
+      protocols: websocketProtocols(),
     });
   }
 

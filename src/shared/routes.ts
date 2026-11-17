@@ -7,6 +7,7 @@ const createInstance = () => `${instances()}/create`;
 const websocket = () => `${base()}/ws/connect` as const;
 
 export const apiRoutes = {
+  base,
   createInstance,
   instances,
   localLimaTemplates,

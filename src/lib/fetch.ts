@@ -1,5 +1,7 @@
 import type { StatusCodes } from 'http-status-codes';
 import type { z } from 'zod';
+import { API_TOKEN_HEADER } from '../shared/constants.ts';
+import { apiToken } from './api-token.ts';
 
 type JSONFetchOpts<S extends z.ZodType> = RequestInit & {
   allowedErrorStatuses?: StatusCodes[];
@@ -25,7 +27,9 @@ export async function jsonFetch<T extends z.ZodType>({
   url,
   ...rest
 }: JSONFetchOpts<T>): Promise<z.output<T>> {
-  const response = await fetch(url, { method, ...rest });
+  const headers = new Headers(rest.headers);
+  if (apiToken) headers.set(API_TOKEN_HEADER, apiToken);
+  const response = await fetch(url, { ...rest, headers, method });
   const body = await response.text();
   if (!response.ok && !allowedErrorStatuses.includes(response.status)) {
     throw new FetchError(url, method, response.status, body);

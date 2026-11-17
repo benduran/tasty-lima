@@ -99,7 +99,7 @@
     "build:cli:win:x64": "nodec --entry ./src/cli/tasty-lima.ts --name tasty-lima --nodeVersion 26.12.0 --outDir ./dist --target win-x64",
     "build:ui": "vite build",
     "clean": "rm -rf ./dist",
-    "dev:cli": "tsx ./src/cli/tasty-lima.ts --noUI",
+    "dev:cli": "tsx ./src/cli/tasty-lima.ts --noUI --allowOrigin http://localhost:60010",
     "dev:ui": "vite",
     "fix:lint": "biome check --write .",
     "gen:constants": "tsx ./scripts/inject-app-version.ts",
