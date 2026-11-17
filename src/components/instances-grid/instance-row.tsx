@@ -47,13 +47,13 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
   const [copied, setCopied] = useCopiedFlag();
   const [yamlCopied, setYamlCopied] = useCopiedFlag();
 
-  const pending =
-    operation && isNullOrUndefined(operation.finishedAt)
-      ? OPERATION_LABELS[operation.request]
-      : undefined;
-  const stopping =
-    !isNullOrUndefined(pending) &&
-    operation?.request === 'request-shutdown-instance';
+  const isOperationPending =
+    !isNullOrUndefined(operation) && isNullOrUndefined(operation.finishedAt);
+  const pendingLabel = isOperationPending
+    ? OPERATION_LABELS[operation.request]
+    : undefined;
+  const isShutdownPending =
+    isOperationPending && operation?.request === 'request-shutdown-instance';
   const moreTooltip = `More actions for ${vm.name}`;
 
   const actionButtonClass = 'w-full justify-start';
@@ -61,128 +61,118 @@ export function InstanceRow({ vm }: { vm: LimaInstance }) {
   return (
     <TableRow>
       <TableCell>{vm.name}</TableCell>
-      <TableCell>{pending ? `${pending.pending}...` : vm.status}</TableCell>
+      <TableCell>
+        {pendingLabel ? `${pendingLabel.pending}...` : vm.status}
+      </TableCell>
       <TableCell>{vm.config?.os}</TableCell>
       <TableCell>{vm.arch}</TableCell>
       <TableCell>{vm.cpus}</TableCell>
       <TableCell>{bytesToGb(vm.memory)}GiB</TableCell>
       <TableCell>{bytesToGb(vm.disk)}GiB</TableCell>
       <TableCell>
-        {pending ? (
-          <Button
-            aria-label={`${pending.pending} ${vm.name}`}
-            loading
-            size="sm"
-            variant="outline"
-          >
-            <PlayIcon />
-          </Button>
-        ) : (
-          <Popover>
-            <PopoverTrigger
-              render={
-                <Button aria-label={moreTooltip} size="sm" variant="outline">
-                  <EllipsisIcon />
-                </Button>
-              }
-            />
-            <PopoverContent align="end" className="w-52">
-              <div className="flex flex-col gap-1">
-                {vm.status === 'Stopped' && (
-                  <Button
-                    className={actionButtonClass}
-                    onClick={() => execBoot({ name: vm.name })}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <PlayIcon />
-                    Boot
-                  </Button>
-                )}
-                {!stopping && vm.status === 'Running' && (
-                  <ConfirmButton
-                    className={actionButtonClass}
-                    confirmMessage={
-                      <>Are you sure you want to shutdown {vm.name}?</>
-                    }
-                    onConfirm={() => execShutdown({ name: vm.name })}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <SquareStopIcon />
-                    Shutdown
-                  </ConfirmButton>
-                )}
+        <Popover>
+          <PopoverTrigger
+            render={
+              <Button aria-label={moreTooltip} size="sm" variant="outline">
+                <EllipsisIcon />
+              </Button>
+            }
+          />
+          <PopoverContent align="end" className="w-52">
+            <div className="flex flex-col gap-1">
+              {vm.status === 'Stopped' && (
                 <Button
                   className={actionButtonClass}
-                  onClick={() => setLocation(uiRoutes.editVm(vm.name))}
+                  loading={isOperationPending}
+                  onClick={() => execBoot({ name: vm.name })}
                   size="sm"
                   variant="outline"
                 >
-                  <PencilIcon />
-                  Edit
+                  <PlayIcon />
+                  Boot
                 </Button>
-                {operation && (
-                  <Button
-                    className={actionButtonClass}
-                    onClick={() => openLogsViewer(vm.name)}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <ScrollTextIcon />
-                    Logs
-                  </Button>
-                )}
-                <Button
-                  className={actionButtonClass}
-                  data-copied={copied || undefined}
-                  loading={isBuildingCommand}
-                  onClick={() => {
-                    copyConnectCommand({ name: vm.name })
-                      .then(() => setCopied(true))
-                      .catch(() => {
-                        /* failure toasts are handled globally */
-                      });
-                  }}
-                  size="sm"
-                  variant="outline"
-                >
-                  {copied ? <CheckIcon /> : <TerminalIcon />}
-                  {copied ? 'Copied' : 'Copy shell command'}
-                </Button>
-                <Button
-                  className={actionButtonClass}
-                  data-copied={yamlCopied || undefined}
-                  onClick={() => {
-                    copyInstanceYaml({ name: vm.name })
-                      .then(() => setYamlCopied(true))
-                      .catch(() => {
-                        /* failure toasts are handled globally */
-                      });
-                  }}
-                  size="sm"
-                  variant="outline"
-                >
-                  {yamlCopied ? <CheckIcon /> : <CopyIcon />}
-                  {yamlCopied ? 'Copied' : 'Copy Template YAML'}
-                </Button>
+              )}
+              {!isShutdownPending && vm.status === 'Running' && (
                 <ConfirmButton
                   className={actionButtonClass}
                   confirmMessage={
-                    <>Are you sure you want to delete {vm.name}?</>
+                    <>Are you sure you want to shutdown {vm.name}?</>
                   }
-                  loading={isDeleting}
-                  onConfirm={() => execDelete({ name: vm.name })}
+                  onConfirm={() => execShutdown({ name: vm.name })}
                   size="sm"
                   variant="outline"
                 >
-                  <TrashIcon />
-                  Delete
+                  <SquareStopIcon />
+                  Shutdown
                 </ConfirmButton>
-              </div>
-            </PopoverContent>
-          </Popover>
-        )}
+              )}
+              <Button
+                className={actionButtonClass}
+                onClick={() => setLocation(uiRoutes.editVm(vm.name))}
+                size="sm"
+                variant="outline"
+              >
+                <PencilIcon />
+                Edit
+              </Button>
+              {operation && (
+                <Button
+                  className={actionButtonClass}
+                  onClick={() => openLogsViewer(vm.name)}
+                  size="sm"
+                  variant="outline"
+                >
+                  <ScrollTextIcon />
+                  Logs
+                </Button>
+              )}
+              <Button
+                className={actionButtonClass}
+                data-copied={copied || undefined}
+                loading={isBuildingCommand}
+                onClick={() => {
+                  copyConnectCommand({ name: vm.name })
+                    .then(() => setCopied(true))
+                    .catch(() => {
+                      /* failure toasts are handled globally */
+                    });
+                }}
+                size="sm"
+                variant="outline"
+              >
+                {copied ? <CheckIcon /> : <TerminalIcon />}
+                {copied ? 'Copied' : 'Copy shell command'}
+              </Button>
+              <Button
+                className={actionButtonClass}
+                data-copied={yamlCopied || undefined}
+                onClick={() => {
+                  copyInstanceYaml({ name: vm.name })
+                    .then(() => setYamlCopied(true))
+                    .catch(() => {
+                      /* failure toasts are handled globally */
+                    });
+                }}
+                size="sm"
+                variant="outline"
+              >
+                {yamlCopied ? <CheckIcon /> : <CopyIcon />}
+                {yamlCopied ? 'Copied' : 'Copy Template YAML'}
+              </Button>
+              <ConfirmButton
+                className={actionButtonClass}
+                confirmMessage={<>Are you sure you want to delete {vm.name}?</>}
+                loading={isOperationPending || isDeleting}
+                onConfirm={() => execDelete({ name: vm.name })}
+                size="sm"
+                variant="outline"
+              >
+                <TrashIcon />
+                Delete
+              </ConfirmButton>
+            </div>
+          </PopoverContent>
+        </Popover>
       </TableCell>
     </TableRow>
   );

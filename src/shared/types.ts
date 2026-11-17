@@ -93,6 +93,10 @@ export const ShutdownInstanceRequestResponseSchema = z.object({
 export const ResponseInstanceConnectCommandSchema = z.object({
   command: z.string().nonempty(),
 });
+
+export const LimaBinResponse = z.object({
+  binPath: z.string().nullish(),
+});
 export type ResponseInstanceConnectCommand = z.infer<
   typeof ResponseInstanceConnectCommandSchema
 >;
@@ -302,6 +306,17 @@ export const WebSocketMessageSchema = z.discriminatedUnion('type', [
     sender: z.literal('server'),
     type: z.literal('response-edit-instance'),
   }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    sender: z.literal('client'),
+    type: z.literal('request-lima-bin'),
+  }),
+  z.object({
+    ...BaseWebsocketSchema.shape,
+    data: LimaBinResponse,
+    sender: z.literal('server'),
+    type: z.literal('response-lima-bin'),
+  }),
 ]);
 export type WebSocketMessage = z.infer<typeof WebSocketMessageSchema>;
 
@@ -355,6 +370,7 @@ export const WsResponseMap = {
   'request-heartbeat': 'response-heartbeat',
   'request-instance-connect-command': 'response-instance-connect-command',
   'request-instance-yaml': 'response-instance-yaml',
+  'request-lima-bin': 'response-lima-bin',
   'request-query-instance': 'response-query-instance',
   'request-query-instance-operations': 'response-query-instance-operations',
   'request-query-instances': 'response-query-instances',

@@ -64,7 +64,7 @@ function limaInstallDir(version: string): string {
 let LIMA_BIN_PATH = '';
 
 export function getLimaBinaryPath() {
-  return LIMA_BIN_PATH;
+  return LIMA_BIN_PATH || null;
 }
 
 function limaBinaryPath(installDir: string): string {

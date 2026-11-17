@@ -1,24 +1,16 @@
 import type { ReactNode } from 'react';
-import { CrtKey } from './crt.tsx';
 
 type AppFooterProps = {
-  /** [key label, action label] pairs, rendered left to right */
-  keys?: [string, string][];
+  left: ReactNode;
   /** Right-aligned dim note */
-  note: ReactNode;
+  right: ReactNode;
 };
 
-export function AppFooter({ keys, note }: AppFooterProps) {
+export function AppFooter({ left, right }: AppFooterProps) {
   return (
     <footer className="flex items-center justify-between gap-x-5 gap-y-1.5 border-t-[3px] border-double border-phosphor-dim px-6 py-2.5 shrink-0 text-xs">
-      <span className="inline-flex gap-1">
-        {keys?.map(([key, action]) => (
-          <span key={key}>
-            <CrtKey>{key}</CrtKey> {action}
-          </span>
-        ))}
-      </span>
-      <span className="text-phosphor-dim">{note}</span>
+      <span className="inline-flex gap-1">{left}</span>
+      <span className="text-phosphor-dim">{right}</span>
     </footer>
   );
 }

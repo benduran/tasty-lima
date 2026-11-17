@@ -109,6 +109,13 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
             sender: 'server',
             type: responseNameOf(parsed),
           });
+        case 'request-lima-bin':
+          return send({
+            data: { binPath: getLimaBinaryPath() },
+            requestId,
+            sender: 'server',
+            type: responseNameOf(parsed),
+          });
         case 'request-query-instance': {
           const instance = await getInstanceByName(parsed.data.name);
           return send({
