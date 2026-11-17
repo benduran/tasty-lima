@@ -1,3 +1,11 @@
+## 0.0.3 (2026-11-17)
+
+### ✨ Features ✨
+
+- feat: try to open the system's default web browser on boot (ae46bc8b5aaca5766ef5e4ab82dde14bbde89b2e)
+
+---
+
 ## 0.0.2 (2026-11-16)
 
 ### 🛠️ Fixes 🛠️
