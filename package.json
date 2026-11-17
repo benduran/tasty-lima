@@ -6,7 +6,9 @@
   "bugs": {
     "url": "https://github.com/benduran/tasty-lima/issues"
   },
-  "dependencies": {},
+  "dependencies": {
+    "open": "11.0.4"
+  },
   "description": "A quick and easy-to-use UI for creating and interacting with Lima VMs. Available as a standalone, self-contained CLI binary — no Node.js or Lima preinstalled — that boots a local web UI for managing your VMs.",
   "devDependencies": {
     "@base-ui/react": "1.9.0",

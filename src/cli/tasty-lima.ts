@@ -14,6 +14,12 @@ async function setup() {
         'the hostname on which the local tasty-lima helper will listen',
       type: 'string',
     })
+    .option('noOpen', {
+      default: false,
+      description:
+        "if true, will not attempt to open your system's default web browser to the Tasty Lima Web UI",
+      type: 'boolean',
+    })
     .option('noUI', {
       default: false,
       description:

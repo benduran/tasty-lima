@@ -165,6 +165,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      open:
+        specifier: 11.0.4
+        version: 11.0.4
     devDependencies:
       '@base-ui/react':
         specifier: 1.9.0
