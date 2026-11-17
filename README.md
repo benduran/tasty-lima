@@ -64,6 +64,16 @@ tasty-lima [options]
 Once started, open the printed URL (e.g. `http://127.0.0.1:60011`) in your
 browser.
 
+## Screenshots
+
+### Instances list
+
+![Instances list view showing running VMs with status, OS, arch, CPU, memory, and disk usage](https://raw.githubusercontent.com/benduran/tasty-lima/main/instances-list.png)
+
+### Creating a VM
+
+![Animated walkthrough of creating a new VM: naming the instance, picking a template, and choosing arch and VM type](https://raw.githubusercontent.com/benduran/tasty-lima/main/create-a-vm.gif)
+
 ## Development
 
 ```sh
