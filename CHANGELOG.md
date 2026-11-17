@@ -1,3 +1,11 @@
+## 0.2.0 (2026-11-17)
+
+### ✨ Features ✨
+
+- feat: secure-by-default vm settings (274d879032e7d5fd6f417a997fe80d0e92447049)
+
+---
+
 ## 0.1.0 (2026-11-17)
 
 ### ✨ Features ✨
