@@ -1,3 +1,11 @@
+## 0.1.0 (2026-11-17)
+
+### ✨ Features ✨
+
+- feat: added copying of the local lima bin file and fixed loading state for instance rows (144b4753ffadf74cd53e4b35faf7c7c3e47f686f)
+
+---
+
 ## 0.0.5 (2026-11-17)
 
 ### 📖 Docs 📖
