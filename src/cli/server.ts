@@ -24,9 +24,14 @@ export async function startServer({ hostname, noUI, noOpen, port }: CLIArgs) {
     info => {
       logger.info(`listening on ${info.address}:${info.port}`);
       if (!noOpen) {
-        const u = new URL(`${hostname}:${port}`);
+        let joined = `${hostname}:${port}`;
+        const r = /https?:\/\//;
+        if (!r.test(joined)) {
+          joined = `http://${joined}`;
+        }
+        const u = new URL(joined);
         const url = u.toString();
-        open(url).catch(err =>
+        void open(url).catch(err =>
           logger.error(
             `failed to open ${url}: ${err instanceof Error ? err.message : String(err)}`,
           ),
