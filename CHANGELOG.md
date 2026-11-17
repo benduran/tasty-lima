@@ -1,3 +1,11 @@
+## 0.0.4 (2026-11-17)
+
+### 🛠️ Fixes 🛠️
+
+- fix: malformed uRL on open (7de176529c5b9baf0419f93866b45117c15d07f1)
+
+---
+
 ## 0.0.3 (2026-11-17)
 
 ### ✨ Features ✨
