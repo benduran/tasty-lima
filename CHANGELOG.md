@@ -1,3 +1,11 @@
+## 0.3.0 (2026-11-17)
+
+### ✨ Features ✨
+
+- feat: implemented security measures to ensure outside actors cannot access the tasty-lima UI (6874a8d33122f6b046e5a147af278821f94aa9ad)
+
+---
+
 ## 0.2.0 (2026-11-17)
 
 ### ✨ Features ✨
