@@ -1,3 +1,11 @@
+## 0.3.1 (2026-11-19)
+
+### 🛠️ Fixes 🛠️
+
+- fix: toast height on large errors and stream deletion stdout to user (dddd6d0ce0977bf150399f32fc16b9c3621b306e)
+
+---
+
 ## 0.3.0 (2026-11-17)
 
 ### ✨ Features ✨
