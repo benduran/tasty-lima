@@ -1,3 +1,11 @@
+## 0.3.2 (2026-11-19)
+
+### 🛠️ Fixes 🛠️
+
+- fix: moved open as a dev dep, since it's bundled. no point in installing something that's already included! (255851a4c0a1f81b4fddd73c10d5c8fef7826d6b)
+
+---
+
 ## 0.3.1 (2026-11-19)
 
 ### 🛠️ Fixes 🛠️
