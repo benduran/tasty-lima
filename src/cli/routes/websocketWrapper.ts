@@ -169,7 +169,14 @@ export function enrichWebsocket(ws: WSContext<WebSocketLike>) {
 
         case 'request-delete-instance':
           return send({
-            data: { name: await deleteInstance(parsed.data.name) },
+            data: await runInstanceOperation({
+              exec: async onLines => ({
+                name: await deleteInstance(parsed.data.name, onLines),
+              }),
+              name: parsed.data.name,
+              request: parsed.type,
+              requestId,
+            }),
             requestId,
             sender: 'server',
             type: responseNameOf(parsed),

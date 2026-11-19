@@ -449,15 +449,17 @@ export async function editInstance(
   return await bootInstance(name, onLines);
 }
 
-export async function deleteInstance(name: string) {
+export async function deleteInstance(name: string, onLines?: OnLogLines) {
   const instance = await getInstanceByName(name);
   if (!instance) {
     throw new Error(`unable to delete "${name}" because it doesn't exist`);
   }
   if (instance.status === 'Running') {
-    await shutdownInstance(name);
+    await shutdownInstance(name, onLines);
   }
 
-  await limaExec(['rm', name]);
+  await limaExec(['--tty=false', '--log-format=json', 'rm', name], {
+    sink: createLogLineSink(onLines),
+  });
   return name;
 }

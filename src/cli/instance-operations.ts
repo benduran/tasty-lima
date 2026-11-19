@@ -31,6 +31,13 @@ type RunInstanceOperationOpts<T> = {
   requestId: string;
 };
 
+function isStopLikeRequest(request: InstanceOperationRequest) {
+  return (
+    request === 'request-shutdown-instance' ||
+    request === 'request-delete-instance'
+  );
+}
+
 export async function runInstanceOperation<T>({
   exec,
   name,
@@ -41,7 +48,7 @@ export async function runInstanceOperation<T>({
   if (
     current &&
     isNullOrUndefined(current.finishedAt) &&
-    request !== 'request-shutdown-instance'
+    !(isStopLikeRequest(request) && isStopLikeRequest(current.request))
   ) {
     throw new Error(`${name} is busy: ${current.request} has not finished`);
   }

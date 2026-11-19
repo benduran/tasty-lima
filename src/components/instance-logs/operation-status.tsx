@@ -13,6 +13,7 @@ export const OPERATION_LABELS: Record<
 > = {
   'request-boot-instance': { pending: 'BOOTING', verb: 'BOOT' },
   'request-create-instance': { pending: 'CREATING', verb: 'CREATE' },
+  'request-delete-instance': { pending: 'DELETING', verb: 'DELETE' },
   'request-edit-instance': { pending: 'SAVING', verb: 'SAVE' },
   'request-shutdown-instance': { pending: 'STOPPING', verb: 'SHUTDOWN' },
 };

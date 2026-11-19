@@ -266,4 +266,8 @@
   [data-sonner-toast][data-styled="true"]
   [data-description] {
   color: var(--muted-foreground);
+  max-height: calc(80vh - 5rem);
+  overflow-wrap: anywhere;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
