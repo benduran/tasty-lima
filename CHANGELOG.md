@@ -1,3 +1,17 @@
+## 0.4.0 (2026-11-20)
+
+### ✨ Features ✨
+
+- feat: macos codesigning on linux works (bbafe238ea01228b47ef9246a4715e4d5cf1abe6)
+
+
+
+### 🔀 Miscellaneous 🔀
+
+- chore: added rust for cargo so rcodesign can be installed (d638b0579ae39371b3dcb40f1f621309cfbddc3f)
+
+---
+
 ## 0.3.2 (2026-11-19)
 
 ### 🛠️ Fixes 🛠️
