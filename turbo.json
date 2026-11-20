@@ -86,6 +86,10 @@
       ],
       "outputs": ["dist/tasty-lima-win-x64.exe"]
     },
+    "build:release": {
+      "dependsOn": ["build:cli:all", "sign:mac"],
+      "description": "Release pipeline: build every target, then sign+notarise the macOS binary in place so checksums/uploads pick up the codesigned artifact"
+    },
     "build:ui": {
       "dependsOn": ["gen:constants", "gen:lima-types"],
       "description": "vite build -> dist/",
@@ -146,6 +150,12 @@
       "cache": false,
       "description": "vite preview server (persistent)",
       "persistent": true
+    },
+    "sign:mac": {
+      "cache": false,
+      "dependsOn": ["build:cli:mac:arm64"],
+      "description": "./macos-codesign.sh sign — signs + notarises dist/tasty-lima-macos-arm64 in place; needs the ~/.codesign identity (run ./macos-codesign.sh setup once)",
+      "outputs": ["dist/tasty-lima-macos-arm64"]
     },
     "test": {
       "dependsOn": ["test:lint", "test:types"],

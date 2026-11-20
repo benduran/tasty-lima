@@ -106,6 +106,7 @@
     "gen:lima-types": "tsx ./scripts/generate-lima-types.ts",
     "preview": "vite preview",
     "release": "tsx ./scripts/release-cli.ts",
+    "sign:mac": "./macos-codesign.sh sign ./dist/tasty-lima-macos-arm64",
     "test:lint": "biome check .",
     "test:types": "tsc --noEmit"
   },

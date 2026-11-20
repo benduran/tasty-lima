@@ -77,8 +77,10 @@ async function assertTagIsPushed(tag: string): Promise<void> {
 }
 
 async function buildAllTargets(): Promise<void> {
-  console.log('Building all CLI targets (turbo runs them concurrently)...');
-  await execa('pnpm', ['exec', 'turbo', 'run', 'build:cli:all'], {
+  console.log(
+    'Building all CLI targets and codesigning the macOS binary...',
+  );
+  await execa('pnpm', ['exec', 'turbo', 'run', 'build:release'], {
     cwd: REPO_ROOT,
     stdio: 'inherit',
   });
