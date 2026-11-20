@@ -51,10 +51,7 @@ chmod +x tasty-lima-macos-arm64
 ./tasty-lima-macos-arm64
 ```
 
-> **macOS note:** Gatekeeper will likely block the first run since the binary
-> isn't notarized. If macOS refuses to open it, go to **System Settings →
-> Privacy & Security** and click **Allow Anyway** (or **Open Anyway**), then run
-> it again.
+> **macOS note:** The binary is fully code signed, so you should have no problems downloading and running it without extra security prompts.
 >
 > **Windows note:** Microsoft Defender SmartScreen may flag the `.exe` with an
 > "Unknown publisher" warning. Click **More info → Run anyway** to proceed.
