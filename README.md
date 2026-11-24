@@ -18,18 +18,6 @@ On first run it automatically downloads the pinned `limactl` (and QEMU, if neede
 
 ## Install
 
-### Via npm
-
-```sh
-npm install -g tasty-lima
-```
-
-Then run:
-
-```sh
-tasty-lima
-```
-
 ### Standalone binary
 
 Download the build for your OS + arch from the
@@ -55,6 +43,18 @@ chmod +x tasty-lima-macos-arm64
 >
 > **Windows note:** Microsoft Defender SmartScreen may flag the `.exe` with an
 > "Unknown publisher" warning. Click **More info → Run anyway** to proceed.
+
+### Via npm
+
+```sh
+npm install -g tasty-lima
+```
+
+Then run:
+
+```sh
+tasty-lima
+```
 
 ## Usage
 
